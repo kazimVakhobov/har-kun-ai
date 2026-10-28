@@ -63,6 +63,21 @@ conversation and the composer `<form>`. First in the DOM is a skip link to the i
 conversation every answer carries a copy button, and without it reaching the composer would mean
 tabbing through the whole history.
 
+## The demo banner
+
+Only in the static build ([ADR 0018](adr/0018-static-demo-build.md)): a band across the top, above
+the navbar, in the surface fill with a divider under it. The one place in this interface that uses
+a line rather than air, because what it says is framing rather than content — the page below it is
+a demonstration, and a reader has to know that before reading anything else.
+
+Two lines of metadata-sized text, centred on the conversation's column: what answers here and that
+no model is connected; then how to run the real one. It is **not dismissible**. Someone who closes
+it and then reads lorem ipsum has been misled by the interface, and the line under the composer is
+a footnote, not a disclosure.
+
+The shell gives it a grid row of its own, so the log still takes what is left and nothing scrolls
+that should not.
+
 ## Navbar
 
 The `Har Kun` mark in the display face, and today's date beside it. A daily assistant should know
@@ -216,12 +231,21 @@ A `<form>`, fixed at the bottom. Visually one `.input` frame holding two rows:
 - **During generation** the button becomes "Стоп" (`.btn-secondary` with a square icon). The field
   stays enabled: typing the next question is allowed, sending is blocked until generation ends.
 
-### The picker's two groups
+### The picker's groups
 
-With both kinds on offer the `<select>` carries two `<optgroup>`s — "Бесплатные модели OpenRouter"
-and "Демо без ключа" ([ADR 0017](adr/0017-demo-mode-beside-the-live-model.md)). The demo entries
-are served by the local producer and cost no quota, which is what makes them worth offering on a
-public deployment.
+With more than one kind on offer the `<select>` carries an `<optgroup>` per kind
+([ADR 0017](adr/0017-demo-mode-beside-the-live-model.md),
+[ADR 0018](adr/0018-static-demo-build.md)):
+
+| Group | When it appears |
+|---|---|
+| Бесплатные модели OpenRouter | the server has a key |
+| Демо без ключа · Демо — ответы | always; the second label when failures are also on offer |
+| Демо — отказы | the static build only — 429, silence, a dropped connection, a mid-answer error |
+
+The demo entries are served by the local producer and cost no quota, which is what makes them
+worth offering on a public deployment. The failure entries exist only where there is no server to
+abuse: on GitHub Pages the producer runs in the browser of whoever selected it.
 
 Grouped **only when there is something to tell apart**: a server with no key offers demo entries
 alone, and a group label there would name a distinction the list does not make.
@@ -240,9 +264,9 @@ was the first place to run out of room.
   строки". The last one is hidden below 860px: a touch keyboard has no Shift to hold, so on a phone
   it names a key that is not there.
 - **The demo note** says what is answering, and only when demo entries exist. On a demo model:
-  "Отвечает демо: поток идёт локально, модель не участвует." On a live one it points at the demo
-  for the day the quota runs out. The first case matters more than the second — lorem ipsum must
-  never read as a model's reply.
+  "Отвечает демо: поток идёт локально, модель не участвует." On a failure entry: "Выбран отказ:
+  ответа не будет." On a live one it points at the demo for the day the quota runs out. The first
+  two matter more than the third — lorem ipsum must never read as a model's reply.
 - **The caveat**, "ИИ может ошибаться", sits last: the note is about this answer, the caveat about
   all of them.
 

@@ -1,0 +1,61 @@
+# Publishes the static demo to GitHub Pages (ADR 0018).
+#
+# What goes up is `npm run build:demo` — the app with the mock answering in the
+# browser. No key, no server and no secret of any kind is involved: this
+# workflow has nothing to leak, and deliberately has no access to one.
+#
+# Pages has to be switched to "GitHub Actions" as its source once, by hand, in
+# the repository's settings. Until then this workflow builds and then fails on
+# the deploy step.
+
+name: demo
+
+on:
+  push:
+    branches: [master]
+  # So the demo can be republished without a commit to push.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer commit supersedes one still building.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # The demo is the only build anyone can see, so it does not get published
+      # on a red suite. `build:demo` runs the type checker itself.
+      - run: npm test
+      - run: npm run build:demo
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist-demo
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

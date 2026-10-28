@@ -2,7 +2,8 @@
 
 - **Status:** accepted
 - **Date:** 2026-10-28
-- **Relations:** extends [0003](0003-mock-first.md), extends [0010](0010-deployment.md)
+- **Relations:** extends [0003](0003-mock-first.md), extends [0010](0010-deployment.md),
+  extended by [0018](0018-static-demo-build.md)
 
 ## Context
 

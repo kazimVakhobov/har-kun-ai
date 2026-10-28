@@ -4,6 +4,11 @@ A streaming chat with a language model, built as a take-home. React + TypeScript
 small Express proxy behind it so the OpenRouter key never reaches the browser. The answer appears
 as it is written and can be cut off mid-sentence without losing what already arrived.
 
+**[Open the demo](https://kazimvakhobov.github.io/har-kun-ai/)** — the interface with the mock
+answering in your own browser: streaming, Stop, markdown, and the failure states on demand. No
+model is connected there and no key is involved; for the real thing, clone and run it with your
+own ([ADR 0018](docs/adr/0018-static-demo-build.md)).
+
 > The app's own interface is in Russian: the assignment arrived in Russian and will be reviewed in
 > Russian ([ADR 0005](docs/adr/0005-no-localization.md)). Everything a developer sees — code,
 > comments, commits, docs, this file — is English.
@@ -51,9 +56,11 @@ and says why, rather than one that looks healthy and fails on the first question
 | Command | What it does |
 |---|---|
 | `npm run dev` | Vite on :5173, backend on :8787, `/api` proxied |
-| `npm test` | Vitest — 164 tests |
+| `npm test` | Vitest — 169 tests |
 | `npm run build` | typecheck, then build into `dist/` |
 | `npm start` | production: one server serves `dist/` and `/api` |
+| `npm run build:demo` | the static demo into `dist-demo/` — no server, mock in the browser |
+| `npm run preview:demo` | build it and serve it, to see what Pages will show |
 | `npm run typecheck` | types only, client and server |
 
 Everything configurable is documented in [`.env.example`](.env.example).
@@ -78,7 +85,7 @@ Everything configurable is documented in [`.env.example`](.env.example).
 
 ## Key decisions
 
-Seventeen decisions are written up in [`docs/adr/`](docs/adr/) with their context and their cost.
+Eighteen decisions are written up in [`docs/adr/`](docs/adr/) with their context and their cost.
 The ones that shaped the code most:
 
 **The key lives only on the server** ([ADR 0002](docs/adr/0002-api-key-on-server.md)). It is read
@@ -213,11 +220,11 @@ two were gated to particular apps, one was unavailable and one returned headers 
 ## The AI log
 
 Written by Claude Opus 5 in Claude Code, driven by a human review loop, over roughly a day of
-elapsed time plus a later hour for the demo mode below, in small commits across twelve working
-branches — ninety-nine of them as this is written. The browser checks were done with Claude's
-Chrome automation; there is no other tooling here.
+elapsed time plus two later rounds for the demo work below, in small commits across thirteen
+working branches — a hundred and two of them as this is written. The browser checks were done with
+Claude's Chrome automation; there is no other tooling here.
 
-The honest version of "how it went" is in [`docs/progress/`](docs/progress/) — eighteen reports,
+The honest version of "how it went" is in [`docs/progress/`](docs/progress/) — nineteen reports,
 one per task, each with a mandatory section on what the AI got wrong. All but one were written as
 the work happened, because none of it can be reconstructed afterwards;
 [0017](docs/progress/0017-readme.md) was written late, for a phase that shipped without one, and
@@ -306,6 +313,14 @@ in two pull requests. A ref is a cache, and this is the same mistake as the port
 different clothes: a check against state you did not refresh is not a check
 ([0018](docs/progress/0018-demo-mode.md)).
 
+**Reaching for a mechanism the code already had.** Asked how a static build could possibly answer
+without a server, the model's first sketch was a service worker intercepting `/api/*` — a cache to
+reason about and a first load racing its own installation. Then it read `chatStream.ts`, which
+takes `fetchImpl` as an argument, with a comment from months earlier saying why: so every branch is
+reachable in a test without a server. The seam was already there, and the demo is twenty lines
+because of it. The habit this punishes is designing before reading
+([0019](docs/progress/0019-static-demo.md)).
+
 ### What the AI was good at, honestly
 
 Writing the SSE parser against chunk boundaries, and the tests that cut a frame at every byte
@@ -316,8 +331,8 @@ person pointing at something and saying that is wrong.
 
 ## After the assignment
 
-The repository went public as portfolio work, and that added one thing to it. The hour it took is
-outside the budget above, which was the assignment's.
+The repository went public as portfolio work, and that added two things to it. The few hours they
+took are outside the budget above, which was the assignment's.
 
 **Demo mode** ([ADR 0017](docs/adr/0017-demo-mode-beside-the-live-model.md)). OpenRouter's free
 tier is 20 requests a minute and 50 a day until an account has bought $10 of credits, and failed
@@ -337,8 +352,25 @@ a failure would let a visitor make the server report errors it never had. It sta
 `NODE_ENV`.
 
 This is not a substitute for rate limiting, which [ADR 0010](docs/adr/0010-deployment.md) still
-makes a precondition for shipping: a visitor can choose a live model, and that is still the
-operator's quota.
+makes a precondition for shipping a *live* deployment: there a visitor can choose a real model,
+and that is still the operator's quota.
+
+**The static demo** ([ADR 0018](docs/adr/0018-static-demo-build.md)). GitHub Pages runs files, not
+processes, and this project is a process holding a key — put `dist/` there unchanged and the page
+renders, then fails its first question. So the static build replaces the transport instead:
+`runChatStream` already takes `fetchImpl`, an argument that exists so its branches are testable
+without a server, and the demo build passes one that streams the same mock out of a
+`ReadableStream` in the visitor's own browser.
+
+Nothing downstream can tell the difference, which is the point — the reader, the parser, the
+cancellation and the guards are the shipping code, not a simulation of it. The picker gains a
+third group there, "Демо — отказы": a 429 with its countdown, a silence, a dropped connection that
+keeps the half-written answer, an error mid-stream. Those entries exist only in `src/demo/` and
+never in anything a server serves; on Pages there is no process to abuse, because the producer
+runs in the browser of whoever picked it.
+
+What it cannot do is show a model. That is the premise rather than a shortcoming: no key is
+involved anywhere in that build.
 
 ## What's next, given another day
 
@@ -360,8 +392,10 @@ In the order I would actually do them:
    in the background. Designed and deliberately deferred — `TASK.md` never asks for more than one
    chat, and building it would have been scope I chose for the reviewer rather than work they asked
    for ([ADR 0012](docs/adr/0012-chat-sidebar-scope.md)).
-5. **Deploy it** ([ADR 0010](docs/adr/0010-deployment.md)). There is a domain waiting; the server
-   is already a single process serving `dist/` and `/api`.
+5. **Deploy the live one** ([ADR 0010](docs/adr/0010-deployment.md)). The static demo is up and
+   costs nothing, but it cannot show a model. There is a domain waiting and the server is already
+   a single process serving `dist/` and `/api` — what it needs first is the rate limiting that
+   ADR makes a precondition, and a host that does not sleep.
 6. **Accounts, and a key of your own.** Sign-in through Google first — one provider, and no
    passwords of anyone's to store — and then the thing it exists for: an account can attach its own
    OpenRouter key, and its requests spend that one. Sixth rather than first because deployment is
@@ -390,8 +424,8 @@ conversation has no button.
 | [`docs/plan.md`](docs/plan.md) | the phased plan and the `/api/chat` contract |
 | [`docs/ui-structure.md`](docs/ui-structure.md) | screen layout, states, keyboard map |
 | [`docs/design-system.md`](docs/design-system.md) | the Nocturne design system: tokens and how they map on |
-| [`docs/adr/`](docs/adr/) | 17 decisions, with context and cost |
-| [`docs/progress/`](docs/progress/) | 18 per-task reports — the source of the AI log above |
+| [`docs/adr/`](docs/adr/) | 18 decisions, with context and cost |
+| [`docs/progress/`](docs/progress/) | 19 per-task reports — the source of the AI log above |
 | [`CLAUDE.md`](CLAUDE.md) | the instructions the AI agents worked under |
 
 ## Licence

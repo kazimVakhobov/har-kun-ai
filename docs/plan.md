@@ -295,6 +295,7 @@ a branch.
 | History in `sessionStorage` | Survives a stray F5 but does not accumulate other people's conversations on a shared computer |
 | Mock server before the real model | Edge handling is the first grading criterion, and it is not reproducible against a live free model |
 | The demo producer stays selectable in production | A free tier is 50 requests a day. Without it, a public deployment on a spent quota has nothing to show but its own error card |
+| A static build that answers from the browser | GitHub Pages runs files, not processes. The mock needs no process, so the demo link is free, instant and cannot run out — and it shows the shipped client code, not a simulation of it ([ADR 0018](adr/0018-static-demo-build.md)) |
 | Cancellation reaches the upstream | Otherwise "Stop" stops only the rendering while quota keeps burning |
 | Nocturne for the UI | A finished dark system with considered states and tokens, instead of inventing a palette along the way. Tokens and mapping in `docs/design-system.md` |
 | One theme, dark | Nocturne is a dark system; a light variant would have to be invented, and it would not be Nocturne |

@@ -68,6 +68,7 @@ the old file is correct in full, on its own.
 | [0015](0015-contents-rail.md) | A contents rail for the conversation | accepted | |
 | [0016](0016-free-model-catalogue.md) | The model list is fetched live and filtered to `:free` | accepted | extends [0003](0003-mock-first.md) |
 | [0017](0017-demo-mode-beside-the-live-model.md) | The demo producer is selectable beside the live model | accepted | extends [0003](0003-mock-first.md), [0010](0010-deployment.md) |
+| [0018](0018-static-demo-build.md) | A static build that answers from the browser | accepted | extends [0010](0010-deployment.md), [0017](0017-demo-mode-beside-the-live-model.md) |
 
-Nothing has been superseded or withdrawn so far: 0011, 0012, 0016 and 0017 cancel nothing, they
-layer.
+Nothing has been superseded or withdrawn so far: 0011, 0012, 0016, 0017 and 0018 cancel nothing,
+they layer.
