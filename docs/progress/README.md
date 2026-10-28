@@ -52,3 +52,4 @@ assembled from here.
 | [0015-ui-fixes.md](0015-ui-fixes.md) | Waiting states, the interrupted answer, and the composer's key map |
 | [0016-assignment-audit.md](0016-assignment-audit.md) | Auditing the repository against `TASK.md`, and closing what it found |
 | [0017-readme.md](0017-readme.md) | The README phase — reported after the fact, and saying so |
+| [0018-demo-mode.md](0018-demo-mode.md) | A demo that answers when the free quota will not |
