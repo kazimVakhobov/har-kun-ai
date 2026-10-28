@@ -16,7 +16,15 @@ export interface ChatMessage {
 
 export interface ChatRequest {
   messages: ChatMessage[]
-  /** Optional: without it the server's default model is used. */
+  /**
+   * Optional: without it the server's default model is used.
+   *
+   * The id also decides who answers. A `demo` id is served by the local
+   * producer and never reaches the upstream, so a visitor can see the mechanics
+   * on a day the free quota is spent (ADR 0017). Which ids those are is the
+   * server's business: the client reads `kind` off the catalogue rather than
+   * matching on the string.
+   */
   model?: string
 }
 
@@ -68,13 +76,32 @@ export type StreamEvent =
   | { event: 'done'; data: DoneEvent }
   | { event: 'error'; data: ApiError }
 
+/**
+ * Where an answer would come from. `live` is a real model through OpenRouter;
+ * `demo` is the local producer, which costs no quota and cannot run out.
+ *
+ * `fault` is a demo entry that fails on purpose — a 429, a silence, a dropped
+ * connection, an error mid-answer. **The server never serves one.** They exist
+ * only in the static demo build, where the producer runs in the visitor's own
+ * browser and the worst an entry can do is show its chooser an error card
+ * ([ADR 0018](../docs/adr/0018-static-demo-build.md)). Offering them from a
+ * real process would be `?simulate=` with extra steps.
+ */
+export type ModelKind = 'live' | 'demo' | 'fault'
+
 export interface ModelInfo {
   id: string
   name: string
   contextLength: number
+  kind: ModelKind
 }
 
 export interface ModelsResponse {
+  /**
+   * Both kinds in one list, live first, because the picker is one control. A
+   * list with no `live` entry means the server has no key and everything it can
+   * answer is a demo.
+   */
   models: ModelInfo[]
   default: string
 }

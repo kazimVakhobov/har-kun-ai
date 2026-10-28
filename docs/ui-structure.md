@@ -63,6 +63,21 @@ conversation and the composer `<form>`. First in the DOM is a skip link to the i
 conversation every answer carries a copy button, and without it reaching the composer would mean
 tabbing through the whole history.
 
+## The demo banner
+
+Only in the static build ([ADR 0018](adr/0018-static-demo-build.md)): a band across the top, above
+the navbar, in the surface fill with a divider under it. The one place in this interface that uses
+a line rather than air, because what it says is framing rather than content — the page below it is
+a demonstration, and a reader has to know that before reading anything else.
+
+Two lines of metadata-sized text, centred on the conversation's column: what answers here and that
+no model is connected; then how to run the real one. It is **not dismissible**. Someone who closes
+it and then reads lorem ipsum has been misled by the interface, and the line under the composer is
+a footnote, not a disclosure.
+
+The shell gives it a grid row of its own, so the log still takes what is left and nothing scrolls
+that should not.
+
 ## Navbar
 
 The `Har Kun` mark in the display face, and today's date beside it. A daily assistant should know
@@ -202,16 +217,58 @@ A `<form>`, fixed at the bottom. Visually one `.input` frame holding two rows:
 │                                      │
 │ [ модель ▾ ]                   [ ↑ ] │   select + primary button
 └──────────────────────────────────────┘
+   Esc — остановить · Enter — отправить      the footnote, outside the frame
+   Отвечает демо: поток идёт локально…
+   ИИ может ошибаться — перепроверяйте…
 ```
 
 - The `textarea.input` has no border of its own — the wrapper carries it, and focus highlights the
   wrapper's edge in the accent. It grows to about 6 rows, then scrolls internally.
-- **The model picker is a native `<select>`** styled as ghost: the `:free` list from
-  `GET /api/models`. A native element gives keyboard handling, first-letter search and the system
-  picker on mobile for free. The model is remembered per chat, not globally.
+- **The model picker is a native `<select>`** styled as ghost: the list from `GET /api/models`.
+  A native element gives keyboard handling, first-letter search and the system picker on mobile for
+  free. The model is remembered per chat, not globally.
 - The primary button is `.btn-primary.btn-icon` with an arrow. Disabled while the field is empty.
 - **During generation** the button becomes "Стоп" (`.btn-secondary` with a square icon). The field
   stays enabled: typing the next question is allowed, sending is blocked until generation ends.
+
+### The picker's groups
+
+With more than one kind on offer the `<select>` carries an `<optgroup>` per kind
+([ADR 0017](adr/0017-demo-mode-beside-the-live-model.md),
+[ADR 0018](adr/0018-static-demo-build.md)):
+
+| Group | When it appears |
+|---|---|
+| Бесплатные модели OpenRouter | the server has a key |
+| Демо без ключа · Демо — ответы | always; the second label when failures are also on offer |
+| Демо — отказы | the static build only — 429, silence, a dropped connection, a mid-answer error |
+
+The demo entries are served by the local producer and cost no quota, which is what makes them
+worth offering on a public deployment. The failure entries exist only where there is no server to
+abuse: on GitHub Pages the producer runs in the browser of whoever selected it.
+
+Grouped **only when there is something to tell apart**: a server with no key offers demo entries
+alone, and a group label there would name a distinction the list does not make.
+
+There is no mode switch above the conversation and nothing in the navbar. "Who answers this" is
+the question the picker already asks, and a second control asking it again would be two places to
+read and one to forget.
+
+### The footnote
+
+Below the frame, centred, in the smallest size on the scale: a key map, the demo note, the caveat.
+Outside the frame because they are about the control rather than part of it — and the row inside
+was the first place to run out of room.
+
+- **The key map** is a `<ul>`: "Esc — остановить", "Enter — отправить", "Shift + Enter — перенос
+  строки". The last one is hidden below 860px: a touch keyboard has no Shift to hold, so on a phone
+  it names a key that is not there.
+- **The demo note** says what is answering, and only when demo entries exist. On a demo model:
+  "Отвечает демо: поток идёт локально, модель не участвует." On a failure entry: "Выбран отказ:
+  ответа не будет." On a live one it points at the demo for the day the quota runs out. The first
+  two matter more than the third — lorem ipsum must never read as a model's reply.
+- **The caveat**, "ИИ может ошибаться", sits last: the note is about this answer, the caveat about
+  all of them.
 
 ## Errors
 
@@ -220,7 +277,14 @@ not as a banner at the top: a floating notification in a corner would detach the
 cause.
 
 A `.card` with a plain-language explanation, a `.tag-outline` carrying the contract's code, and a
-`.btn-primary` retry. The text received so far stays above, untouched.
+`.btn-ghost` retry. The text received so far stays above, untouched.
+
+**On `rate_limited`, and only there, the card also offers the demo**
+([ADR 0017](adr/0017-demo-mode-beside-the-live-model.md)). The quota belongs to the operator's key,
+so "wait" is the only advice Retry can give, and on a free tier the wait can be the rest of the
+day. That button is never disabled by the countdown: the wait is OpenRouter's and the demo does not
+go near it. A timeout or a dropped connection says nothing about the model's availability, so there
+the first move is still Retry and no offer appears.
 
 **Errors are not encoded in colour.** Nocturne has no role for errors; the system is mono and asks
 to keep chroma low outside the accent. Meaning is carried by a warning icon, a heading and text —

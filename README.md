@@ -4,6 +4,11 @@ A streaming chat with a language model, built as a take-home. React + TypeScript
 small Express proxy behind it so the OpenRouter key never reaches the browser. The answer appears
 as it is written and can be cut off mid-sentence without losing what already arrived.
 
+**[Open the demo](https://kazimvakhobov.github.io/har-kun-ai/)** — the interface with the mock
+answering in your own browser: streaming, Stop, markdown, and the failure states on demand. No
+model is connected there and no key is involved; for the real thing, clone and run it with your
+own ([ADR 0018](docs/adr/0018-static-demo-build.md)).
+
 > The app's own interface is in Russian: the assignment arrived in Russian and will be reviewed in
 > Russian ([ADR 0005](docs/adr/0005-no-localization.md)). Everything a developer sees — code,
 > comments, commits, docs, this file — is English.
@@ -51,9 +56,11 @@ and says why, rather than one that looks healthy and fails on the first question
 | Command | What it does |
 |---|---|
 | `npm run dev` | Vite on :5173, backend on :8787, `/api` proxied |
-| `npm test` | Vitest — 164 tests |
+| `npm test` | Vitest — 169 tests |
 | `npm run build` | typecheck, then build into `dist/` |
 | `npm start` | production: one server serves `dist/` and `/api` |
+| `npm run build:demo` | the static demo into `dist-demo/` — no server, mock in the browser |
+| `npm run preview:demo` | build it and serve it, to see what Pages will show |
 | `npm run typecheck` | types only, client and server |
 
 Everything configurable is documented in [`.env.example`](.env.example).
@@ -70,18 +77,24 @@ Everything configurable is documented in [`.env.example`](.env.example).
 - **Keyboard throughout** — Tab, Enter sends, Shift+Enter breaks a line, Esc stops, a skip link,
   semantic markup, one polite live region.
 - **Markdown** in answers, rendered live, with unterminated code fences closed before parsing.
-- **A free model picker**, filled from OpenRouter's live catalogue filtered to `:free`.
+- **A free model picker**, filled from OpenRouter's live catalogue filtered to `:free`, with the
+  demo profiles grouped beneath it.
+- **A demo that answers when the quota will not** — the same streaming, stopping and markdown,
+  generated locally, offered by the 429 card and by the picker. See
+  [after the assignment](#after-the-assignment).
 
 ## Key decisions
 
-Sixteen decisions are written up in [`docs/adr/`](docs/adr/) with their context and their cost.
+Eighteen decisions are written up in [`docs/adr/`](docs/adr/) with their context and their cost.
 The ones that shaped the code most:
 
 **The key lives only on the server** ([ADR 0002](docs/adr/0002-api-key-on-server.md)). It is read
 from `process.env` inside `server/` and never leaves it. The browser only ever talks to its own
 origin. Worth naming the trap avoided: Vite's `import.meta.env` with a `VITE_` prefix is one line
 away and **inlines the value into the bundle** — that is, into exactly the place the assignment
-says to keep it out of. `grep` over the built `dist/` finds neither `openrouter` nor `Bearer`.
+says to keep it out of. `grep -ril "bearer\|authorization\|sk-or-" dist/` over the built bundle
+finds nothing. Not `openrouter`, which it used to check: the word is now a visible group label in
+the model picker, and a check with a known false positive is one people stop reading.
 
 **Our own SSE shape rather than piping the upstream** ([ADR 0009](docs/adr/0009-normalized-sse.md)).
 HTTP cannot change a status once headers are sent, so an error that happens after the first token
@@ -158,8 +171,8 @@ The assignment asks for two to six hours of clean time. This took **eight to nin
 idea through, the documents and the code together. That is over, by enough that rounding it down
 would be a dodge, so here it is at the top rather than buried in a report.
 
-Where it went is visible in the repository: sixteen decision records, seventeen progress reports, a
-written design system, a screen specification. Part of that the assignment asked for — it grades
+Where it went is visible in the repository: by the time it was handed in, sixteen decision records,
+seventeen progress reports, a written design system, a screen specification. Part of that the assignment asked for — it grades
 process, and it wants an AI log naming where the model was wrong and how that was caught. None of
 that can be reconstructed at the end; it is written while it happens or it is lost, and
 [one report written late](docs/progress/0017-readme.md) shows what the reconstruction is worth.
@@ -207,14 +220,15 @@ two were gated to particular apps, one was unavailable and one returned headers 
 ## The AI log
 
 Written by Claude Opus 5 in Claude Code, driven by a human review loop, over roughly a day of
-elapsed time, in small commits across ten working branches — ninety of them as this is written. The browser checks were done with Claude's
-Chrome automation; there is no other tooling here.
+elapsed time plus two later rounds for the demo work below, in small commits across thirteen
+working branches — a hundred and three of them as this is written. The browser checks were done with
+Claude's Chrome automation; there is no other tooling here.
 
-The honest version of "how it went" is in [`docs/progress/`](docs/progress/) — seventeen reports,
-one per task, each with a mandatory section on what the AI got wrong. Sixteen were written as the
-work happened, because none of it can be reconstructed afterwards; the
-[seventeenth](docs/progress/0017-readme.md) was written late, for a phase that shipped without one,
-and opens by saying what that cost it. What follows is the summary; the files have the detail.
+The honest version of "how it went" is in [`docs/progress/`](docs/progress/) — twenty reports,
+one per task, each with a mandatory section on what the AI got wrong. All but one were written as
+the work happened, because none of it can be reconstructed afterwards;
+[0017](docs/progress/0017-readme.md) was written late, for a phase that shipped without one, and
+opens by saying what that cost it. What follows is the summary; the files have the detail.
 
 ### Where it went wrong, and how that surfaced
 
@@ -291,6 +305,22 @@ diagnosis: two `npm run dev` stacks were running, and the older one, started bef
 was added to the script, had taken the port. Listing the processes answered it; re-reading the
 handler would not have ([0014](docs/progress/0014-openrouter.md)).
 
+**Reading a cached answer and reporting it as the state of the world.** Asked later what was in the
+repository, the model said `master` held nothing but the initial commit and all the work sat on
+`dev` — reading `origin/master` out of the local ref store without fetching first, so it answered
+with a snapshot weeks old. The owner said the merge had happened; one `git fetch` showed it had,
+in two pull requests. A ref is a cache, and this is the same mistake as the port above wearing
+different clothes: a check against state you did not refresh is not a check
+([0018](docs/progress/0018-demo-mode.md)).
+
+**Reaching for a mechanism the code already had.** Asked how a static build could possibly answer
+without a server, the model's first sketch was a service worker intercepting `/api/*` — a cache to
+reason about and a first load racing its own installation. Then it read `chatStream.ts`, which
+takes `fetchImpl` as an argument, with a comment from months earlier saying why: so every branch is
+reachable in a test without a server. The seam was already there, and the demo is twenty lines
+because of it. The habit this punishes is designing before reading
+([0019](docs/progress/0019-static-demo.md)).
+
 ### What the AI was good at, honestly
 
 Writing the SSE parser against chunk boundaries, and the tests that cut a frame at every byte
@@ -298,6 +328,49 @@ position. Keeping a contract in two implementations in sync. Producing decision 
 costs. What it needed a human for, repeatedly, was **looking at the screen** — most of the defects
 above were invisible to the type checker and the test suite, and every one of them was found by a
 person pointing at something and saying that is wrong.
+
+## After the assignment
+
+The repository went public as portfolio work, and that added two things to it. The few hours they
+took are outside the budget above, which was the assignment's.
+
+**Demo mode** ([ADR 0017](docs/adr/0017-demo-mode-beside-the-live-model.md)). OpenRouter's free
+tier is 20 requests a minute and 50 a day until an account has bought $10 of credits, and failed
+attempts count too. On a public URL that is an afternoon of mild interest, after which every
+visitor meets the 429 card — the state this project handles most carefully, which does not help,
+because somebody who sees only the error card has not seen the thing.
+
+The mock the whole interface was built against already answers that, and always did; it was simply
+unreachable on a server holding a key. Now the model id decides who generates. `GET /api/models`
+returns the demo profiles beside the live catalogue with a `kind` on each, the picker groups them
+under "Демо без ключа", the 429 card offers the demo as an action that the countdown does not
+disable, and a line under the composer says which of the two is answering — the half that matters,
+because lorem ipsum must never read as a model's reply.
+
+`?simulate=` is **not** reopened. Choosing who answers spends nothing and reveals nothing; ordering
+a failure would let a visitor make the server report errors it never had. It stays gated on
+`NODE_ENV`.
+
+This is not a substitute for rate limiting, which [ADR 0010](docs/adr/0010-deployment.md) still
+makes a precondition for shipping a *live* deployment: there a visitor can choose a real model,
+and that is still the operator's quota.
+
+**The static demo** ([ADR 0018](docs/adr/0018-static-demo-build.md)). GitHub Pages runs files, not
+processes, and this project is a process holding a key — put `dist/` there unchanged and the page
+renders, then fails its first question. So the static build replaces the transport instead:
+`runChatStream` already takes `fetchImpl`, an argument that exists so its branches are testable
+without a server, and the demo build passes one that streams the same mock out of a
+`ReadableStream` in the visitor's own browser.
+
+Nothing downstream can tell the difference, which is the point — the reader, the parser, the
+cancellation and the guards are the shipping code, not a simulation of it. The picker gains a
+third group there, "Демо — отказы": a 429 with its countdown, a silence, a dropped connection that
+keeps the half-written answer, an error mid-stream. Those entries exist only in `src/demo/` and
+never in anything a server serves; on Pages there is no process to abuse, because the producer
+runs in the browser of whoever picked it.
+
+What it cannot do is show a model. That is the premise rather than a shortcoming: no key is
+involved anywhere in that build.
 
 ## What's next, given another day
 
@@ -319,13 +392,17 @@ In the order I would actually do them:
    in the background. Designed and deliberately deferred — `TASK.md` never asks for more than one
    chat, and building it would have been scope I chose for the reviewer rather than work they asked
    for ([ADR 0012](docs/adr/0012-chat-sidebar-scope.md)).
-5. **Deploy it** ([ADR 0010](docs/adr/0010-deployment.md)). There is a domain waiting; the server
-   is already a single process serving `dist/` and `/api`.
+5. **Deploy the live one** ([ADR 0010](docs/adr/0010-deployment.md)). The static demo is up and
+   costs nothing, but it cannot show a model. There is a domain waiting and the server is already
+   a single process serving `dist/` and `/api` — what it needs first is the rate limiting that
+   ADR makes a precondition, and a host that does not sleep.
 6. **Accounts, and a key of your own.** Sign-in through Google first — one provider, and no
    passwords of anyone's to store — and then the thing it exists for: an account can attach its own
    OpenRouter key, and its requests spend that one. Sixth rather than first because deployment is
    what turns this from a nice idea into a necessary one: on a public URL every visitor spends the
-   operator's free quota, and the first 429 is everybody's.
+   operator's free quota, and the first 429 is everybody's. The demo
+   ([ADR 0017](docs/adr/0017-demo-mode-beside-the-live-model.md)) softens that symptom without
+   touching the cause — whose key it is.
 
    It is also much the largest item here, and it moves two decisions that are currently settled.
    A key held on someone else's behalf has to be encrypted at rest and must never travel back to
@@ -347,8 +424,8 @@ conversation has no button.
 | [`docs/plan.md`](docs/plan.md) | the phased plan and the `/api/chat` contract |
 | [`docs/ui-structure.md`](docs/ui-structure.md) | screen layout, states, keyboard map |
 | [`docs/design-system.md`](docs/design-system.md) | the Nocturne design system: tokens and how they map on |
-| [`docs/adr/`](docs/adr/) | 16 decisions, with context and cost |
-| [`docs/progress/`](docs/progress/) | 17 per-task reports — the source of the AI log above |
+| [`docs/adr/`](docs/adr/) | 18 decisions, with context and cost |
+| [`docs/progress/`](docs/progress/) | 20 per-task reports — the source of the AI log above |
 | [`CLAUDE.md`](CLAUDE.md) | the instructions the AI agents worked under |
 
 ## Licence

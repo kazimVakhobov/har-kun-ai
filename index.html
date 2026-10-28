@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Har Kun — помощник на каждый день</title>
+    <!-- SVG only: it is one file that stays sharp at every size, and the tab is
+         the only place this appears. The browsers that cannot read one fall back
+         to their own default rather than to something broken. -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- The page's own ground, so the browser's chrome does not frame a dark
+         interface in white on the platforms that colour it. -->
+    <meta name="theme-color" content="#161826" />
+    <title>Har Kun AI</title>
   </head>
   <body>
     <div id="root"></div>

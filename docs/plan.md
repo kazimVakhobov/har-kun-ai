@@ -57,6 +57,11 @@ Request:
 `model` is optional; without it the server's default is used. The client sends the whole history:
 the server keeps no state between requests.
 
+The id also selects **who answers**: a demo id is served by the local producer even on a server
+that holds a key, so the mechanics stay visible when the free quota is spent
+([ADR 0017](adr/0017-demo-mode-beside-the-live-model.md)). Which ids those are is the server's
+business — the client never matches on the string, it reads `kind` off the catalogue below.
+
 A successful response is `200` and `text/event-stream`:
 
 ```
@@ -130,10 +135,17 @@ and does not try to write anything else into a closed socket.
 
 ```json
 {
-  "models": [{ "id": "vendor/name:free", "name": "Name", "contextLength": 32768 }],
+  "models": [
+    { "id": "vendor/name:free", "name": "Name", "contextLength": 32768, "kind": "live" },
+    { "id": "mock/lorem:free", "name": "Lorem — обычный", "contextLength": 8192, "kind": "demo" }
+  ],
   "default": "vendor/name:free"
 }
 ```
+
+Both kinds in one list, `live` first, because the picker is one control. A list with no `live`
+entry means the server holds no key and everything it can answer is a demo. `default` is a live id
+wherever there is one: a visitor meets the real model first, and the demo is the fallback.
 
 ### Timeouts
 
@@ -255,7 +267,10 @@ staying in place (the error states remain reproducible there).
 
 Verification: the Network tab shows no request to `openrouter.ai` from the page and no
 `Authorization` header on requests to our own API; `grep` over `dist/` does not find the key.
-**Done** — `grep` over the built `dist/` finds neither `openrouter` nor `Bearer`. The live model
+**Done** — `grep -ril "bearer\|authorization\|sk-or-" dist/` finds nothing in the built bundle.
+It used to grep for `openrouter` too; since [ADR 0017](adr/0017-demo-mode-beside-the-live-model.md)
+that word is a visible group label in the picker, and a check that always matches checks nothing.
+The live model
 answered, and all sixteen free models were probed with a real key: see
 [progress 0014](progress/0014-openrouter.md) for what each one did and the two things that changed
 as a result.
@@ -279,6 +294,8 @@ a branch.
 | Normalised SSE instead of piping the upstream | There is no other way to deliver an error once headers are sent; and the upstream's response shape does not leak outward |
 | History in `sessionStorage` | Survives a stray F5 but does not accumulate other people's conversations on a shared computer |
 | Mock server before the real model | Edge handling is the first grading criterion, and it is not reproducible against a live free model |
+| The demo producer stays selectable in production | A free tier is 50 requests a day. Without it, a public deployment on a spent quota has nothing to show but its own error card |
+| A static build that answers from the browser | GitHub Pages runs files, not processes. The mock needs no process, so the demo link is free, instant and cannot run out — and it shows the shipped client code, not a simulation of it ([ADR 0018](adr/0018-static-demo-build.md)) |
 | Cancellation reaches the upstream | Otherwise "Stop" stops only the rendering while quota keeps burning |
 | Nocturne for the UI | A finished dark system with considered states and tokens, instead of inventing a palette along the way. Tokens and mapping in `docs/design-system.md` |
 | One theme, dark | Nocturne is a dark system; a light variant would have to be invented, and it would not be Nocturne |

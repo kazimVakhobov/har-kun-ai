@@ -167,3 +167,29 @@ function isApiError(value: object): value is ApiError {
   const error = value as ApiError
   return typeof error.code === 'string' && typeof error.message === 'string'
 }
+
+// ── Writing ──────────────────────────────────────────────────────────────────
+
+/**
+ * The frames, beside the parser that reads them: one grammar seen from two
+ * ends, and changing it on one side without the other is the kind of bug that
+ * only shows up over a socket. Both producers build frames with these — the
+ * server writing to a response, and the browser demo writing to a
+ * `ReadableStream` (ADR 0018).
+ */
+
+export function deltaFrame(data: DeltaEvent): string {
+  return frame('delta', data)
+}
+
+export function doneFrame(data: DoneEvent): string {
+  return frame('done', data)
+}
+
+export function errorFrame(data: ApiError): string {
+  return frame('error', data)
+}
+
+function frame(event: string, data: unknown): string {
+  return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
+}

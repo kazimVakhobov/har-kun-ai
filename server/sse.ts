@@ -1,5 +1,10 @@
 import type { Response } from 'express'
-import type { ApiError, DeltaEvent, DoneEvent } from '../shared/contract.js'
+
+/**
+ * Writing SSE onto an Express response. The frames themselves are built in
+ * `shared/sse.ts`, beside the parser that reads them — they are the same
+ * grammar seen from two ends, and the browser demo builds them too (ADR 0018).
+ */
 
 /** A keepalive comment. The client parser must ignore such lines. */
 export const KEEPALIVE = ':\n\n'
@@ -11,22 +16,6 @@ export function openStream(res: Response): void {
   res.setHeader('Connection', 'keep-alive')
   res.setHeader('X-Accel-Buffering', 'no')
   res.flushHeaders()
-}
-
-export function deltaFrame(data: DeltaEvent): string {
-  return frame('delta', data)
-}
-
-export function doneFrame(data: DoneEvent): string {
-  return frame('done', data)
-}
-
-export function errorFrame(data: ApiError): string {
-  return frame('error', data)
-}
-
-function frame(event: string, data: unknown): string {
-  return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
 }
 
 /**

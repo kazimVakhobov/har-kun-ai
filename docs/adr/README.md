@@ -53,19 +53,22 @@ the old file is correct in full, on its own.
 |---|---|---|---|
 | [0001](0001-project-name.md) | Project name — har kun ai | accepted | |
 | [0002](0002-api-key-on-server.md) | The OpenRouter key lives only on the server, via env | accepted | |
-| [0003](0003-mock-first.md) | Mock data first, the live model last | accepted | extended by [0016](0016-free-model-catalogue.md) |
+| [0003](0003-mock-first.md) | Mock data first, the live model last | accepted | extended by [0016](0016-free-model-catalogue.md), [0017](0017-demo-mode-beside-the-live-model.md) |
 | [0004](0004-single-dark-theme.md) | One theme — Nocturne dark, no toggle | accepted | |
 | [0005](0005-no-localization.md) | No localisation; the interface is Russian | accepted | |
 | [0006](0006-responsive-layout.md) | Responsive from 320px, mobile-first | accepted | |
 | [0007](0007-custom-focus-ring.md) | Our own focus ring instead of the browser's — the pushback | accepted | |
 | [0008](0008-session-storage-history.md) | Conversation history in sessionStorage | accepted | refined by [0011](0011-background-generation.md) |
 | [0009](0009-normalized-sse.md) | Our own SSE shape instead of piping the upstream | accepted | |
-| [0010](0010-deployment.md) | Deployment — an optional last step | accepted | |
+| [0010](0010-deployment.md) | Deployment — an optional last step | accepted | extended by [0017](0017-demo-mode-beside-the-live-model.md) |
 | [0011](0011-background-generation.md) | Several chats; generation continues in the background | accepted | refines [0008](0008-session-storage-history.md), extended by [0012](0012-chat-sidebar-scope.md) |
 | [0012](0012-chat-sidebar-scope.md) | The sidebar is beyond the assignment — built last | accepted | extends [0011](0011-background-generation.md) |
 | [0013](0013-typography.md) | A Cyrillic type set instead of Inter | accepted | refines the design-system doc |
 | [0014](0014-opens-on-the-day.md) | The empty screen opens on the day | accepted | |
 | [0015](0015-contents-rail.md) | A contents rail for the conversation | accepted | |
 | [0016](0016-free-model-catalogue.md) | The model list is fetched live and filtered to `:free` | accepted | extends [0003](0003-mock-first.md) |
+| [0017](0017-demo-mode-beside-the-live-model.md) | The demo producer is selectable beside the live model | accepted | extends [0003](0003-mock-first.md), [0010](0010-deployment.md) |
+| [0018](0018-static-demo-build.md) | A static build that answers from the browser | accepted | extends [0010](0010-deployment.md), [0017](0017-demo-mode-beside-the-live-model.md) |
 
-Nothing has been superseded or withdrawn so far: 0011, 0012 and 0016 cancel nothing, they layer.
+Nothing has been superseded or withdrawn so far: 0011, 0012, 0016, 0017 and 0018 cancel nothing,
+they layer.

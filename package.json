@@ -12,6 +12,8 @@
     "dev:server": "tsx watch --env-file-if-exists=.env server/index.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "build": "npm run typecheck && vite build",
+    "build:demo": "npm run typecheck && vite build --mode demo",
+    "preview:demo": "npm run build:demo && vite preview --outDir dist-demo",
     "start": "NODE_ENV=production tsx --env-file-if-exists=.env server/index.ts",
     "preview": "npm run build && npm start",
     "test": "vitest run",

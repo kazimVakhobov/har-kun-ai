@@ -1,7 +1,9 @@
 import type { Response } from 'express'
-import { ERROR_STATUS, type ApiError, type DoneReason, type ErrorResponse } from '../shared/contract.js'
+import { ERROR_STATUS, type ApiError, type ErrorResponse } from '../shared/contract.js'
+import { deltaFrame, doneFrame, errorFrame } from '../shared/sse.js'
+import { StreamFailure, delay, type Producer, type Pump, type StreamContext } from '../shared/stream.js'
 import { config } from './env.js'
-import { KEEPALIVE, deltaFrame, doneFrame, errorFrame, openStream, write } from './sse.js'
+import { KEEPALIVE, openStream, write } from './sse.js'
 
 /**
  * The transport, kept apart from whatever produces the text. Keepalive, the
@@ -13,33 +15,11 @@ import { KEEPALIVE, deltaFrame, doneFrame, errorFrame, openStream, write } from 
  * headers are sent. So a producer runs in two acts. `connect` happens before
  * any byte of ours goes out, and a failure there is still a real status code.
  * Everything after it can only report failure as an `error` event inside a 200.
+ *
+ * What a producer *is* lives in `shared/stream.ts`, because the mock also runs
+ * in the browser now (ADR 0018). Everything in this file is about a socket, and
+ * stays where the socket is.
  */
-
-/** A failure carrying the contract's error. Where it is caught decides its form. */
-export class StreamFailure extends Error {
-  constructor(readonly apiError: ApiError) {
-    super(apiError.message)
-    this.name = 'StreamFailure'
-  }
-}
-
-export interface StreamContext {
-  /** Send one increment and rearm the idle guard. Empty text is ignored. */
-  emit(text: string): Promise<void>
-  signal: AbortSignal
-  /**
-   * Cut the connection without a `done`. Only the mock's `drop` mode wants
-   * this — it is what a dropped network looks like from the browser. Return
-   * `null` afterwards: the response is already settled.
-   */
-  sever(): void
-}
-
-/** Reads the generation. Returns why it ended, or `null` if it settled itself. */
-export type Pump = (ctx: StreamContext) => Promise<DoneReason | null>
-
-/** Runs before the stream opens, so it may fail with a status. */
-export type Producer = (signal: AbortSignal) => Promise<Pump>
 
 export interface RunOptions {
   /**
@@ -214,25 +194,3 @@ async function writeFrame(
   await write(res, frame.slice(cut))
 }
 
-/** Resolves when the request is cancelled or a guard fires. Never on its own. */
-export function untilAborted(signal: AbortSignal): Promise<void> {
-  if (signal.aborted) return Promise.resolve()
-
-  return new Promise((resolve) => {
-    signal.addEventListener('abort', () => resolve(), { once: true })
-  })
-}
-
-export function delay(ms: number, signal: AbortSignal): Promise<void> {
-  if (signal.aborted) return Promise.resolve()
-
-  return new Promise((resolve) => {
-    const done = (): void => {
-      clearTimeout(timer)
-      signal.removeEventListener('abort', done)
-      resolve()
-    }
-    const timer = setTimeout(done, ms)
-    signal.addEventListener('abort', done, { once: true })
-  })
-}

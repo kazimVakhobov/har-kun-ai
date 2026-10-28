@@ -44,6 +44,16 @@
   color: var(--color-text-muted);
 }
 
+/**
+ * A step below `.detail`: what happened is the card's point, and the way out of
+ * it is a note under that. 13px is the system's secondary text.
+ */
+.fallback {
+  margin: var(--space-2) 0 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
 .actions {
   display: flex;
   align-items: center;

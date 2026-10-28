@@ -9,6 +9,7 @@ import {
 import { runChatStream } from '../lib/chatStream.js'
 import { createStateSaver, loadState } from '../lib/storage.js'
 import { createStreamRegistry } from '../lib/streams.js'
+import { apiFetch } from '../lib/transport.js'
 import type { Chat, ChatState, Message } from '../lib/types.js'
 
 /**
@@ -22,10 +23,14 @@ export interface UseChat {
   models: ModelInfo[]
   /** The chat's model, or the server's default when it names one we do not know. */
   model: string
+  /** The demo model a rate-limited answer can fall back to; '' when none is offered. */
+  demoModel: string
   isStreaming: boolean
   send(content: string): void
   stop(): void
   retry(): void
+  /** Retry the failed answer on the demo producer, and keep that choice. */
+  retryOnDemo(): void
   setModel(model: string): void
 }
 
@@ -53,6 +58,17 @@ export function useChat(): UseChat {
     [models, chat.model, defaultModel],
   )
 
+  /**
+   * What a rate-limited answer can fall back to, '' when the catalogue offers
+   * no demo at all. The first entry rather than a chosen one: the profiles
+   * differ in how they stream, not in what they are for, and the plain one
+   * leads the list.
+   */
+  const demoModel = useMemo(
+    () => models.find((entry) => entry.kind === 'demo')?.id ?? '',
+    [models],
+  )
+
   // While a stream runs, writes are debounced; once nothing is streaming the
   // pending state goes out immediately. Storage only has to survive a reload,
   // so it never needs to keep up per token (ADR 0011).
@@ -74,7 +90,7 @@ export function useChat(): UseChat {
   useEffect(() => {
     const controller = new AbortController()
 
-    void fetch('/api/models', { signal: controller.signal })
+    void apiFetch('/api/models', { signal: controller.signal })
       .then((response) => (response.ok ? (response.json() as Promise<ModelsResponse>) : null))
       .then((body) => {
         if (body === null) return
@@ -103,6 +119,7 @@ export function useChat(): UseChat {
             ? { messages: history }
             : { messages: history, model: requestedModel },
         signal: controller.signal,
+        fetchImpl: apiFetch,
         handlers: {
           onDelta: (text) => dispatch({ type: 'stream/delta', chatId, messageId, text }),
           onDone: () => {
@@ -151,25 +168,53 @@ export function useChat(): UseChat {
     streams.abort(chat.id)
   }, [chat.id, streams])
 
-  const retry = useCallback(() => {
-    const last = chat.messages[chat.messages.length - 1]
-    if (last === undefined || last.role !== 'assistant' || last.status === 'streaming') return
+  const retryWith = useCallback(
+    (requestedModel: string) => {
+      const last = chat.messages[chat.messages.length - 1]
+      if (last === undefined || last.role !== 'assistant' || last.status === 'streaming') return
 
-    // The history is what came before the failed answer — the answer itself,
-    // partial or empty, is not context for its own retry.
-    const history = asHistory(chat.messages.slice(0, -1))
-    if (history.length === 0) return
+      // The history is what came before the failed answer — the answer itself,
+      // partial or empty, is not context for its own retry.
+      const history = asHistory(chat.messages.slice(0, -1))
+      if (history.length === 0) return
 
-    dispatch({ type: 'message/retried', chatId: chat.id, messageId: last.id, now: Date.now() })
-    startStream(chat.id, last.id, history, model)
-  }, [chat, model, startStream])
+      dispatch({ type: 'message/retried', chatId: chat.id, messageId: last.id, now: Date.now() })
+      startStream(chat.id, last.id, history, requestedModel)
+    },
+    [chat, startStream],
+  )
+
+  const retry = useCallback(() => retryWith(model), [retryWith, model])
+
+  /**
+   * The way out of a spent quota (ADR 0017). The choice sticks rather than
+   * applying to this one answer: whoever takes the offer has just been told the
+   * model is unavailable, and sending the next question straight back into the
+   * same 429 would be a worse surprise than staying on the demo.
+   */
+  const retryOnDemo = useCallback(() => {
+    if (demoModel === '') return
+    dispatch({ type: 'chat/model-changed', chatId: chat.id, model: demoModel })
+    retryWith(demoModel)
+  }, [chat.id, demoModel, retryWith])
 
   const setModel = useCallback(
     (next: string) => dispatch({ type: 'chat/model-changed', chatId: chat.id, model: next }),
     [chat.id],
   )
 
-  return { chat, models, model, isStreaming, send, stop, retry, setModel }
+  return {
+    chat,
+    models,
+    model,
+    demoModel,
+    isStreaming,
+    send,
+    stop,
+    retry,
+    retryOnDemo,
+    setModel,
+  }
 }
 
 function initialState(): ChatState {
