@@ -45,3 +45,27 @@ If the step does not happen, the README says so in words, as the assignment perm
 - Until there is a deployment, the only way to see the project is to run it locally. Mitigated by
   phases 1 and 2 running without a key at all ([0003](0003-mock-first.md)): `npm install &&
   npm run dev` is enough.
+
+## Amendment, 2026-10-29
+
+The domain is no longer waiting: **har-kun.uz serves the static demo**
+([0018](0018-static-demo-build.md)), on GitHub Pages, over a certificate GitHub issues and renews.
+The apex and `www` both resolve there; the five `dev.*` records that used to point at a different
+server were removed, so the zone is nine records with one purpose.
+
+This is not the deployment the decision above describes. That one is a Node process holding a key,
+and it still needs what this ADR made a precondition — rate limiting before anything public. What
+changed is only which address the demo lives at.
+
+The reason it went to the apex rather than a subdomain is unpleasant and worth recording: Google
+Safe Browsing had flagged `kazimvakhobov.github.io` — the whole account subdomain, because
+`github.io` sits on the Public Suffix List — over a login-page clone in an unrelated repository of
+the same owner. Every project page under that account inherits the warning, including this one,
+which contains no form, no credential field and no third-party host. A domain of our own is a
+different site to Safe Browsing, so the link works while that is sorted out separately.
+
+**The cost, stated plainly: Pages gives a custom domain to one repository at a time.** The apex is
+now spent on a demo that cannot show a model. When the live deployment happens it either takes the
+apex back — removing it here, and the demo returns to a URL under a flagged host — or it goes to a
+subdomain and the apex keeps pointing at the lesser of the two. Neither is free, and the choice
+was made for a reason that may not outlast the week: the flag.

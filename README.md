@@ -4,10 +4,10 @@ A streaming chat with a language model, built as a take-home. React + TypeScript
 small Express proxy behind it so the OpenRouter key never reaches the browser. The answer appears
 as it is written and can be cut off mid-sentence without losing what already arrived.
 
-**[Open the demo](https://kazimvakhobov.github.io/har-kun-ai/)** — the interface with the mock
-answering in your own browser: streaming, Stop, markdown, and the failure states on demand. No
-model is connected there and no key is involved; for the real thing, clone and run it with your
-own ([ADR 0018](docs/adr/0018-static-demo-build.md)).
+**[Open the demo](https://har-kun.uz)** — the interface with the mock answering in your own
+browser: streaming, Stop, markdown, and the failure states on demand. No model is connected there
+and no key is involved; for the real thing, clone and run it with your own
+([ADR 0018](docs/adr/0018-static-demo-build.md)).
 
 > The app's own interface is in Russian: the assignment arrived in Russian and will be reviewed in
 > Russian ([ADR 0005](docs/adr/0005-no-localization.md)). Everything a developer sees — code,
@@ -221,10 +221,10 @@ two were gated to particular apps, one was unavailable and one returned headers 
 
 Written by Claude Opus 5 in Claude Code, driven by a human review loop, over roughly a day of
 elapsed time plus two later rounds for the demo work below, in small commits across thirteen
-working branches — a hundred and five of them as this is written. The browser checks were done with
+working branches — a hundred and six of them as this is written. The browser checks were done with
 Claude's Chrome automation; there is no other tooling here.
 
-The honest version of "how it went" is in [`docs/progress/`](docs/progress/) — twenty reports,
+The honest version of "how it went" is in [`docs/progress/`](docs/progress/) — twenty-one reports,
 one per task, each with a mandatory section on what the AI got wrong. All but one were written as
 the work happened, because none of it can be reconstructed afterwards;
 [0017](docs/progress/0017-readme.md) was written late, for a phase that shipped without one, and
@@ -372,6 +372,16 @@ runs in the browser of whoever picked it.
 What it cannot do is show a model. That is the premise rather than a shortcoming: no key is
 involved anywhere in that build.
 
+It lives at **har-kun.uz** rather than under `github.io`, and the reason is worth saying out loud
+rather than passing off as polish: Google Safe Browsing had flagged the whole
+`kazimvakhobov.github.io` subdomain over a login-page clone in an unrelated repository of the same
+owner. `github.io` is on the Public Suffix List, so that subdomain is one site to Safe Browsing and
+every project page under it inherits the warning — including this one, which has no form, no
+credential field and no third-party request in it. The domain is a different site, so the link
+works while the flag is cleared separately. The cost is in
+[ADR 0010](docs/adr/0010-deployment.md): Pages gives a custom domain to one repository, and the
+apex is now spent on the build that cannot show a model.
+
 ## What's next, given another day
 
 In the order I would actually do them:
@@ -392,10 +402,12 @@ In the order I would actually do them:
    in the background. Designed and deliberately deferred — `TASK.md` never asks for more than one
    chat, and building it would have been scope I chose for the reviewer rather than work they asked
    for ([ADR 0012](docs/adr/0012-chat-sidebar-scope.md)).
-5. **Deploy the live one** ([ADR 0010](docs/adr/0010-deployment.md)). The static demo is up and
-   costs nothing, but it cannot show a model. There is a domain waiting and the server is already
-   a single process serving `dist/` and `/api` — what it needs first is the rate limiting that
-   ADR makes a precondition, and a host that does not sleep.
+5. **Deploy the live one** ([ADR 0010](docs/adr/0010-deployment.md)). The static demo is up at
+   `har-kun.uz` and costs nothing, but it cannot show a model. The server is already a single
+   process serving `dist/` and `/api`; what it needs first is the rate limiting that ADR makes a
+   precondition, and a host that does not sleep. It also needs an address, and that is now a real
+   decision rather than a spare one — Pages gives a custom domain to a single repository, so the
+   live version either takes the apex back from the demo or settles for a subdomain.
 6. **Accounts, and a key of your own.** Sign-in through Google first — one provider, and no
    passwords of anyone's to store — and then the thing it exists for: an account can attach its own
    OpenRouter key, and its requests spend that one. Sixth rather than first because deployment is
@@ -425,7 +437,7 @@ conversation has no button.
 | [`docs/ui-structure.md`](docs/ui-structure.md) | screen layout, states, keyboard map |
 | [`docs/design-system.md`](docs/design-system.md) | the Nocturne design system: tokens and how they map on |
 | [`docs/adr/`](docs/adr/) | 18 decisions, with context and cost |
-| [`docs/progress/`](docs/progress/) | 20 per-task reports — the source of the AI log above |
+| [`docs/progress/`](docs/progress/) | 21 per-task reports — the source of the AI log above |
 | [`CLAUDE.md`](CLAUDE.md) | the instructions the AI agents worked under |
 
 ## Licence
