@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express'
 import type { ModelInfo, ModelsResponse } from '../shared/contract.js'
 import { config } from './env.js'
-import { DEFAULT_MODEL, MOCK_MODELS } from './mock.js'
+import { DEFAULT_MODEL, MOCK_MODELS, isDemoModel } from './mock.js'
 
 /**
  * The model list the picker is built from.
@@ -27,13 +27,20 @@ const FALLBACK: ModelInfo[] = [
     id: 'nvidia/nemotron-3-super-120b-a12b:free',
     name: 'NVIDIA: Nemotron 3 Super',
     contextLength: 262_144,
+    kind: 'live',
   },
   {
     id: 'inclusionai/ling-3.0-flash-sante:free',
     name: 'inclusionAI: Ling 3.0 Flash Sante',
     contextLength: 262_144,
+    kind: 'live',
   },
-  { id: 'google/gemma-4-31b-it:free', name: 'Google: Gemma 4 31B', contextLength: 262_144 },
+  {
+    id: 'google/gemma-4-31b-it:free',
+    name: 'Google: Gemma 4 31B',
+    contextLength: 262_144,
+    kind: 'live',
+  },
 ]
 
 /**
@@ -67,6 +74,11 @@ interface Catalogue {
 let cached: Catalogue | undefined
 let inFlight: Promise<Catalogue> | undefined
 
+/**
+ * The demo profiles are always in the list, and always last: with a key they
+ * are the fallback for a spent quota (ADR 0017), and without one they are
+ * everything the server can answer.
+ */
 export async function handleModels(_req: Request, res: Response): Promise<void> {
   if (config.useMock) {
     const body: ModelsResponse = { models: MOCK_MODELS, default: DEFAULT_MODEL }
@@ -75,7 +87,10 @@ export async function handleModels(_req: Request, res: Response): Promise<void> 
   }
 
   const catalogue = await loadCatalogue()
-  const body: ModelsResponse = { models: catalogue.models, default: catalogue.default }
+  const body: ModelsResponse = {
+    models: [...catalogue.models, ...MOCK_MODELS],
+    default: catalogue.default,
+  }
   res.json(body)
 }
 
@@ -97,7 +112,10 @@ export function defaultModel(): string {
  * its 404 comes back as a `bad_request` naming the model.
  */
 export function isAllowedModel(id: string): boolean {
-  if (config.useMock) return MOCK_MODELS.some((model) => model.id === id)
+  // Offered in both modes, so allowed in both — including with a key, where it
+  // is the one answer that cannot be rate-limited (ADR 0017).
+  if (isDemoModel(id)) return true
+  if (config.useMock) return false
   return /^[\w.-]+\/[\w.:-]+$/.test(id)
 }
 
@@ -177,6 +195,7 @@ export function readCatalogue(payload: unknown): ModelInfo[] {
       id,
       name: displayName(typeof name === 'string' && name !== '' ? name : id),
       contextLength: typeof contextLength === 'number' ? contextLength : 0,
+      kind: 'live',
     })
   }
 

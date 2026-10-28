@@ -2,6 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-09-29
+- **Relations:** extended by [0017](0017-demo-mode-beside-the-live-model.md)
 
 ## Context
 

@@ -59,6 +59,19 @@ describe('readCatalogue', () => {
     expect(model).toMatchObject({ id: 'vendor/a:free', contextLength: 0 })
   })
 
+  it('marks everything it reads as live', () => {
+    // The picker groups on `kind`, and the demo profiles are appended to this
+    // list rather than mixed into it — so anything from the catalogue is live.
+    const models = readCatalogue(
+      catalogue(
+        { id: 'vendor/a:free', name: 'A', context_length: 8 },
+        { id: 'vendor/b:free', name: 'B', context_length: 8 },
+      ),
+    )
+
+    expect(models.map((model) => model.kind)).toEqual(['live', 'live'])
+  })
+
   it('returns nothing rather than throwing on a payload it does not recognise', () => {
     expect(readCatalogue(undefined)).toEqual([])
     expect(readCatalogue(null)).toEqual([])

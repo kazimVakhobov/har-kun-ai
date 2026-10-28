@@ -7,7 +7,7 @@ import {
   type SimulateMode,
 } from '../shared/contract.js'
 import { config } from './env.js'
-import { mockProducer } from './mock.js'
+import { isDemoModel, mockProducer } from './mock.js'
 import { defaultModel, isAllowedModel } from './models.js'
 import { openRouterProducer } from './openrouter.js'
 import { runStream, sendError } from './stream.js'
@@ -19,7 +19,17 @@ export async function handleChat(req: Request, res: Response): Promise<void> {
     return
   }
 
-  const simulate = readSimulate(req)
+  const model = parsed.value.model ?? defaultModel()
+
+  /**
+   * Who answers is the model's business and not only the server's mode: a demo
+   * id is served locally even when a key is configured, so the mechanics stay
+   * visible on a day the free quota is spent (ADR 0017). Without a key every id
+   * is served locally, demo or not.
+   */
+  const demo = config.useMock || isDemoModel(model)
+
+  const simulate = readSimulate(req, demo)
 
   // A 429 arrives before the stream starts, so it goes out as a status, not an event.
   if (simulate === '429') {
@@ -31,9 +41,7 @@ export async function handleChat(req: Request, res: Response): Promise<void> {
     return
   }
 
-  const model = parsed.value.model ?? defaultModel()
-
-  if (config.useMock) {
+  if (demo) {
     await runStream(res, model, mockProducer(model, simulate), { ragged: true })
     return
   }
@@ -80,8 +88,8 @@ function isChatMessage(value: unknown): value is ChatMessage {
  * model does only by luck. Off in production, and off against a real model,
  * where a manufactured failure would mean nothing.
  */
-function readSimulate(req: Request): SimulateMode | undefined {
-  if (!config.allowSimulate || !config.useMock) return undefined
+function readSimulate(req: Request, demo: boolean): SimulateMode | undefined {
+  if (!config.allowSimulate || !demo) return undefined
   const raw = req.query['simulate']
   return isSimulateMode(raw) ? raw : undefined
 }

@@ -2,7 +2,8 @@
 
 - **Status:** accepted
 - **Date:** 2026-09-29
-- **Relations:** extended by [0016](0016-free-model-catalogue.md)
+- **Relations:** extended by [0016](0016-free-model-catalogue.md),
+  [0017](0017-demo-mode-beside-the-live-model.md)
 
 ## Context
 

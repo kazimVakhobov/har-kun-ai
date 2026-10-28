@@ -57,6 +57,11 @@ Request:
 `model` is optional; without it the server's default is used. The client sends the whole history:
 the server keeps no state between requests.
 
+The id also selects **who answers**: a demo id is served by the local producer even on a server
+that holds a key, so the mechanics stay visible when the free quota is spent
+([ADR 0017](adr/0017-demo-mode-beside-the-live-model.md)). Which ids those are is the server's
+business — the client never matches on the string, it reads `kind` off the catalogue below.
+
 A successful response is `200` and `text/event-stream`:
 
 ```
@@ -130,10 +135,17 @@ and does not try to write anything else into a closed socket.
 
 ```json
 {
-  "models": [{ "id": "vendor/name:free", "name": "Name", "contextLength": 32768 }],
+  "models": [
+    { "id": "vendor/name:free", "name": "Name", "contextLength": 32768, "kind": "live" },
+    { "id": "mock/lorem:free", "name": "Lorem — обычный", "contextLength": 8192, "kind": "demo" }
+  ],
   "default": "vendor/name:free"
 }
 ```
+
+Both kinds in one list, `live` first, because the picker is one control. A list with no `live`
+entry means the server holds no key and everything it can answer is a demo. `default` is a live id
+wherever there is one: a visitor meets the real model first, and the demo is the fallback.
 
 ### Timeouts
 
@@ -279,6 +291,7 @@ a branch.
 | Normalised SSE instead of piping the upstream | There is no other way to deliver an error once headers are sent; and the upstream's response shape does not leak outward |
 | History in `sessionStorage` | Survives a stray F5 but does not accumulate other people's conversations on a shared computer |
 | Mock server before the real model | Edge handling is the first grading criterion, and it is not reproducible against a live free model |
+| The demo producer stays selectable in production | A free tier is 50 requests a day. Without it, a public deployment on a spent quota has nothing to show but its own error card |
 | Cancellation reaches the upstream | Otherwise "Stop" stops only the rendering while quota keeps burning |
 | Nocturne for the UI | A finished dark system with considered states and tokens, instead of inventing a palette along the way. Tokens and mapping in `docs/design-system.md` |
 | One theme, dark | Nocturne is a dark system; a light variant would have to be invented, and it would not be Nocturne |

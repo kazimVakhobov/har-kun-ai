@@ -39,13 +39,19 @@ const PROFILES: Record<string, MockProfile> = {
 export const DEFAULT_MODEL = 'mock/lorem:free'
 
 export const MOCK_MODELS: ModelInfo[] = [
-  { id: 'mock/lorem:free', name: 'Lorem — обычный', contextLength: 8192 },
-  { id: 'mock/lorem-slow:free', name: 'Lorem — медленный', contextLength: 8192 },
-  { id: 'mock/lorem-markdown:free', name: 'Lorem — с markdown', contextLength: 8192 },
-  { id: 'mock/lorem-long:free', name: 'Lorem — длинный', contextLength: 32768 },
+  { id: 'mock/lorem:free', name: 'Lorem — обычный', contextLength: 8192, kind: 'demo' },
+  { id: 'mock/lorem-slow:free', name: 'Lorem — медленный', contextLength: 8192, kind: 'demo' },
+  { id: 'mock/lorem-markdown:free', name: 'Lorem — с markdown', contextLength: 8192, kind: 'demo' },
+  { id: 'mock/lorem-long:free', name: 'Lorem — длинный', contextLength: 32768, kind: 'demo' },
 ]
 
-export function isKnownModel(id: string): boolean {
+/**
+ * The demo profiles answer in both modes, so this is what routes a request away
+ * from the upstream — not `config.useMock` alone (ADR 0017). `PROFILES` is the
+ * authority rather than `MOCK_MODELS`: the catalogue is what the picker shows,
+ * while this decides who generates.
+ */
+export function isDemoModel(id: string): boolean {
   return id in PROFILES
 }
 
