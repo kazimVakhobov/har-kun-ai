@@ -92,7 +92,9 @@ Not style preferences — each of these breaks the assignment when violated.
    Nocturne carries no size tokens and expresses sizes as literals, so they come from the two
    tables in `docs/design-system.md`. A size on neither table is drift — extend the document, don't
    pick a number. Anything else the system lacks is a documented extension in
-   `docs/design-system.md`, not an inlined value.
+   `docs/design-system.md`, not an inlined value. **One file holds hex values and is allowed to:**
+   `public/favicon.svg`, which is a separate document and cannot read the page's custom properties
+   — listed as an extension, with the duty to change it whenever a token changes.
 8. **Never commit `nocturne/`.** It is a local design-system bundle excluded through
    `.git/info/exclude`. **Do not add it to `.gitignore` either** — `.gitignore` is committed.
    The source of truth for tokens in code is `docs/design-system.md`, which stands on its own

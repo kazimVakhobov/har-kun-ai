@@ -221,10 +221,10 @@ two were gated to particular apps, one was unavailable and one returned headers 
 
 Written by Claude Opus 5 in Claude Code, driven by a human review loop, over roughly a day of
 elapsed time plus two later rounds for the demo work below, in small commits across thirteen
-working branches — a hundred and two of them as this is written. The browser checks were done with
+working branches — a hundred and three of them as this is written. The browser checks were done with
 Claude's Chrome automation; there is no other tooling here.
 
-The honest version of "how it went" is in [`docs/progress/`](docs/progress/) — nineteen reports,
+The honest version of "how it went" is in [`docs/progress/`](docs/progress/) — twenty reports,
 one per task, each with a mandatory section on what the AI got wrong. All but one were written as
 the work happened, because none of it can be reconstructed afterwards;
 [0017](docs/progress/0017-readme.md) was written late, for a phase that shipped without one, and
@@ -425,7 +425,7 @@ conversation has no button.
 | [`docs/ui-structure.md`](docs/ui-structure.md) | screen layout, states, keyboard map |
 | [`docs/design-system.md`](docs/design-system.md) | the Nocturne design system: tokens and how they map on |
 | [`docs/adr/`](docs/adr/) | 18 decisions, with context and cost |
-| [`docs/progress/`](docs/progress/) | 19 per-task reports — the source of the AI log above |
+| [`docs/progress/`](docs/progress/) | 20 per-task reports — the source of the AI log above |
 | [`CLAUDE.md`](CLAUDE.md) | the instructions the AI agents worked under |
 
 ## Licence

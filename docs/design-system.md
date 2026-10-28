@@ -255,7 +255,18 @@ Nocturne was built for prototype pages and lacks a few things a chat needs. We a
    inside muted text its alpha is 0.55 and the masked element comes out half transparent. It is
    still a value, and values here have names.
 
-6. **No error colour — decided.** The system is mono and explicitly asks to keep chroma low
+6. **The favicon's three literals.** `public/favicon.svg` draws the interface's own motif — an
+   accent spine with text beside it, which is how a model's answer is set — in `#161826`,
+   `#9184d9` and `#e9e9ed`. Those are `--color-bg`, `--color-accent` and `--color-text` written
+   out, and they are written out because a favicon is a separate document: it never sees the
+   page's custom properties, and `var()` there resolves to nothing. **This is the one place a hex
+   value is allowed**, and the cost is a copy that can go stale — change a token and change that
+   file in the same commit. (Two further notes from making it: a double hyphen is illegal inside
+   an XML comment, so the token names cannot be spelled there; and the file ships as SVG only,
+   because it appears in exactly one place and a browser that cannot read one falls back to its
+   own default rather than to something broken.)
+
+7. **No error colour — decided.** The system is mono and explicitly asks to keep chroma low
    outside the accent; it carries no role for errors, and we do not add a `--color-danger`.
    An error is carried by a warning icon, a heading, text and a `.card` — which is what works for
    colour blindness and in a screen reader, where there is no colour at all. Colour should never

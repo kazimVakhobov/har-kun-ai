@@ -44,3 +44,20 @@ quotes it in order to translate it. Two spellings of one name on one screen woul
 oversight rather than as a distinction between a product and a phrase.
 
 The record is appended rather than edited, so what was decided and what changed both stay visible.
+
+## Amendment, 2026-10-28
+
+The browser tab, named in the context above as one of the three places the name appears, said
+"Har Kun — помощник на каждый день" while the other two said the name alone. It now says
+**Har Kun AI** — the product's full name, which is also the repository's and the domain's, and the
+only one of the three spellings that says what the thing is to someone reading a list of tabs.
+
+On the screen the mark stays **Har Kun**, as the amendment above set it. The two are not in
+conflict: inside the app the word "AI" is a label for what is already obvious, while a tab among
+twenty others is the one place the project has to introduce itself. The tagline it replaced was
+doing that job badly — at tab width it is cut off long before "помощник".
+
+The tab also gained an icon, `public/favicon.svg`: the model's answer drawn the way the interface
+draws it, an accent spine with text beside it. Its colours are literal rather than tokens, which
+[`docs/design-system.md`](../design-system.md) explains; a favicon is a document of its own and
+cannot read the page's custom properties.

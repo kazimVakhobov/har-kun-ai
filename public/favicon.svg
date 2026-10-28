@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Har Kun AI">
+  <!--
+    The model's answer, drawn the way the interface draws it: an accent spine on
+    the left and the text beside it, tapering as a last line does.
+
+    The three values are the system's own: the bg, accent and text tokens from
+    src/styles/tokens.css. They are literal here because a favicon is a document
+    of its own and cannot read the page's custom properties; the note in
+    docs/design-system.md says so, so this does not read as drift. Change a
+    token and change this file in the same commit.
+
+    (The token names are spelled out there rather than here on purpose: a double
+    hyphen is illegal inside an XML comment, and writing one made this file
+    malformed enough that browsers served it and then refused to draw it.)
+  -->
+  <rect width="32" height="32" rx="7" fill="#161826" />
+  <rect x="7" y="8" width="3" height="16" rx="1.5" fill="#9184d9" />
+  <rect x="13.5" y="9.4" width="11.5" height="2.6" rx="1.3" fill="#e9e9ed" />
+  <rect x="13.5" y="14.7" width="11.5" height="2.6" rx="1.3" fill="#e9e9ed" opacity="0.72" />
+  <rect x="13.5" y="20" width="6.5" height="2.6" rx="1.3" fill="#e9e9ed" opacity="0.45" />
+</svg>
