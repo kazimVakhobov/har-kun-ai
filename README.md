@@ -214,7 +214,7 @@ two were gated to particular apps, one was unavailable and one returned headers 
 
 Written by Claude Opus 5 in Claude Code, driven by a human review loop, over roughly a day of
 elapsed time plus a later hour for the demo mode below, in small commits across twelve working
-branches — ninety-seven of them as this is written. The browser checks were done with Claude's
+branches — ninety-nine of them as this is written. The browser checks were done with Claude's
 Chrome automation; there is no other tooling here.
 
 The honest version of "how it went" is in [`docs/progress/`](docs/progress/) — eighteen reports,
