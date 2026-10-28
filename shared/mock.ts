@@ -1,4 +1,4 @@
-import type { ModelInfo, SimulateMode } from '../shared/contract.js'
+import type { ModelInfo, SimulateMode } from './contract.js'
 import { StreamFailure, delay, untilAborted, type Producer, type Pump } from './stream.js'
 
 /**

@@ -6,7 +6,7 @@ import {
   parseRetryAfter,
   readUpstreamChunk,
 } from './openrouter.js'
-import { StreamFailure, type StreamContext } from './stream.js'
+import { StreamFailure, type StreamContext } from '../shared/stream.js'
 
 /**
  * The upstream payload is the part that is not ours and can change under us, so

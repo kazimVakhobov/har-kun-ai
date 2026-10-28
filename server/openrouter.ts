@@ -1,7 +1,7 @@
 import type { ApiError, ChatRequest, DoneReason, ErrorCode } from '../shared/contract.js'
 import { createSseParser } from '../shared/sse.js'
 import { config } from './env.js'
-import { StreamFailure, type Producer, type Pump } from './stream.js'
+import { StreamFailure, type Producer, type Pump } from '../shared/stream.js'
 
 /**
  * The live model, behind the same contract as the mock.

@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express'
 import type { ModelInfo, ModelsResponse } from '../shared/contract.js'
+import { DEFAULT_MODEL, MOCK_MODELS, isDemoModel } from '../shared/mock.js'
 import { config } from './env.js'
-import { DEFAULT_MODEL, MOCK_MODELS, isDemoModel } from './mock.js'
 
 /**
  * The model list the picker is built from.

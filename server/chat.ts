@@ -6,8 +6,8 @@ import {
   type ChatRequest,
   type SimulateMode,
 } from '../shared/contract.js'
+import { isDemoModel, mockProducer } from '../shared/mock.js'
 import { config } from './env.js'
-import { isDemoModel, mockProducer } from './mock.js'
 import { defaultModel, isAllowedModel } from './models.js'
 import { openRouterProducer } from './openrouter.js'
 import { runStream, sendError } from './stream.js'
