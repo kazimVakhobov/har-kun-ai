@@ -15,8 +15,23 @@ export default defineConfig(({ mode }) => {
   const { PORT } = loadEnv(mode, process.cwd(), 'PORT')
   const serverPort = PORT === undefined || PORT === '' ? '8787' : PORT
 
+  /**
+   * `--mode demo` builds the static copy for GitHub Pages: no server, the mock
+   * answering in the browser (ADR 0018). A `define` rather than a `VITE_`
+   * variable, so nothing in this project is read from `import.meta.env` and
+   * the rule about the key stays unambiguous.
+   *
+   * `base: './'` so the same output works under a project path
+   * (`user.github.io/har-kun-ai/`) and under a domain of its own, without
+   * rebuilding for either.
+   */
+  const demo = mode === 'demo'
+
   return {
     plugins: [react()],
+    base: demo ? './' : '/',
+    define: { __DEMO__: JSON.stringify(demo) },
+    build: demo ? { outDir: 'dist-demo', emptyOutDir: true } : {},
     server: {
       port: 5173,
       // The browser only ever talks to its own origin — the key lives on the server (ADR 0002).

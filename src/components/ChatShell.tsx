@@ -13,6 +13,7 @@ export function ChatShell({
   log,
   footer,
   contents,
+  banner,
   logRef,
 }: {
   day: DayContext
@@ -20,13 +21,17 @@ export function ChatShell({
   footer: ReactNode
   /** The conversation's contents, in the right margin (ADR 0015). */
   contents?: ReactNode
+  /** A page-level notice above the navbar. Only the static demo has one. */
+  banner?: ReactNode
   logRef?: Ref<HTMLDivElement>
 }) {
   return (
-    <div className={styles.shell}>
+    <div className={`${styles.shell} ${banner !== undefined ? styles.shellBanner : ''}`}>
       <a className={styles.skipLink} href="#composer">
         К полю ввода
       </a>
+
+      {banner}
 
       <header className="nav">
         {/* The mark and the date. A daily assistant should know what day it is

@@ -1,0 +1,55 @@
+/**
+ * A band across the top of the static build, above the navbar.
+ *
+ * Not a card and not a toast: it is a property of the whole page, so it spans
+ * the whole width and sits where a page-level notice sits. Its edge is a single
+ * divider line under it — the system separates areas with air, and this is the
+ * one place that needs a line, because what it says has to be read as framing
+ * rather than as content.
+ */
+
+.root {
+  padding: var(--space-3) var(--space-6);
+  border-bottom: 1px solid var(--color-divider);
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.text {
+  margin: 0 auto;
+  /* The conversation's column, so the band reads with the page under it. */
+  max-width: 760px;
+  /* Metadata size: read once, then ignored — it must not compete with the
+     greeting below it. */
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.text + .text {
+  margin-top: var(--space-1);
+}
+
+.lead {
+  font-weight: var(--font-heading-weight);
+  color: var(--color-text);
+}
+
+.root code {
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--color-neutral-900);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.link {
+  color: var(--color-accent-2);
+  text-underline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .root {
+    padding: var(--space-3) var(--space-4);
+  }
+}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ChatShell } from './components/ChatShell.js'
 import { Composer } from './components/Composer.js'
 import { ContentsRail } from './components/ContentsRail.js'
@@ -12,13 +12,12 @@ import { useDayContext } from './hooks/useDayContext.js'
 import { useChat } from './hooks/useChat.js'
 import type { Message } from './lib/types.js'
 
-export function App() {
+export function App({ banner }: { banner?: ReactNode } = {}) {
   const {
     chat,
     models,
     model,
     demoModel,
-    isDemo,
     isStreaming,
     send,
     stop,
@@ -79,6 +78,7 @@ export function App() {
   return (
     <ChatShell
       day={day}
+      banner={banner}
       logRef={logRef}
       log={
         hasMessages ? (
@@ -87,9 +87,11 @@ export function App() {
           <MessageList
             messages={chat.messages}
             onRetry={canRetry ? retry : undefined}
-            // Nothing to fall back to when the server offers no demo, and
-            // nothing to fall back from when the answer is already on one.
-            onDemo={canRetry && demoModel !== '' && !isDemo ? retryOnDemo : undefined}
+            // Nothing to fall back to when the catalogue offers no demo, and
+            // nothing to fall back from when this is already it. A failure
+            // entry in the static build is not it: falling back from a
+            // deliberate 429 to an answer is exactly the point.
+            onDemo={canRetry && demoModel !== '' && model !== demoModel ? retryOnDemo : undefined}
           />
         ) : (
           // An example fills the field and moves focus there, but never sends:
@@ -139,7 +141,6 @@ export function App() {
             isStreaming={isStreaming}
             models={models}
             model={model}
-            isDemo={isDemo}
             onModelChange={setModel}
             inputRef={inputRef}
           />
