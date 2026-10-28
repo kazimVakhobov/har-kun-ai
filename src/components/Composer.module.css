@@ -173,6 +173,18 @@
 }
 
 /**
+ * The demo note and the caveat are the same size and colour on purpose: both
+ * are read once and then ignored, and neither outranks the other. The note sits
+ * above because it is about this answer, while the caveat is about all of them.
+ */
+.demo {
+  margin: 0;
+  /* Narrower than the line above it: three lines of muted text under the field
+     start to read as a paragraph, and this one is a footnote. */
+  max-width: 52ch;
+}
+
+/**
  * Shift+Enter is a desktop gesture — a touch keyboard has no Shift to hold, so
  * on the screens where the line runs short this item names a key that is not
  * there. The other two stay at every width.

@@ -36,6 +36,12 @@ export function Composer({
   const localRef = useRef<HTMLTextAreaElement>(null)
   const ref = inputRef ?? localRef
 
+  // Two groups in the picker rather than a switch above it: "who answers this"
+  // is the question the picker already asks (ADR 0017).
+  const live = models.filter((entry) => entry.kind === 'live')
+  const demo = models.filter((entry) => entry.kind === 'demo')
+  const onDemo = models.some((entry) => entry.id === model && entry.kind === 'demo')
+
   // Grow with the content up to the max-height the stylesheet sets, then let
   // the field scroll. Done on layout so the height never renders one frame late.
   useLayoutEffect(() => {
@@ -92,11 +98,20 @@ export function Composer({
             onChange={(event) => onModelChange(event.target.value)}
             disabled={models.length === 0}
           >
-            {models.map((entry) => (
-              <option key={entry.id} value={entry.id}>
-                {entry.name}
-              </option>
-            ))}
+            {/* Grouped only when there is something to tell apart. With one kind
+                on offer — a server with no key, or a catalogue that would not
+                load — a group label would name a distinction the list does not
+                make. */}
+            {live.length > 0 && demo.length > 0 ? (
+              <>
+                <optgroup label="Бесплатные модели OpenRouter">
+                  {live.map(toOption)}
+                </optgroup>
+                <optgroup label="Демо без ключа">{demo.map(toOption)}</optgroup>
+              </>
+            ) : (
+              models.map(toOption)
+            )}
           </select>
 
           {isStreaming ? (
@@ -133,8 +148,27 @@ export function Composer({
           <li className={styles.keyExtra}>Shift + Enter — перенос строки</li>
         </ul>
 
+        {/* What is answering right now, or what to do when it stops answering.
+            The first matters more than the second: lorem ipsum must never be
+            mistaken for a model's reply. */}
+        {demo.length > 0 && (
+          <p className={styles.demo}>
+            {onDemo
+              ? 'Отвечает демо: поток идёт локально, модель не участвует. Механика та же, текст — бессмыслица.'
+              : 'Лимит бесплатной модели исчерпан? «Демо без ключа» покажет ту же механику, не обращаясь к модели.'}
+          </p>
+        )}
+
         <p className={styles.caveat}>ИИ может ошибаться — перепроверяйте важные ответы.</p>
       </div>
     </form>
+  )
+}
+
+function toOption(entry: ModelInfo) {
+  return (
+    <option key={entry.id} value={entry.id}>
+      {entry.name}
+    </option>
   )
 }

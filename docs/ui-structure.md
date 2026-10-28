@@ -202,16 +202,49 @@ A `<form>`, fixed at the bottom. Visually one `.input` frame holding two rows:
 │                                      │
 │ [ модель ▾ ]                   [ ↑ ] │   select + primary button
 └──────────────────────────────────────┘
+   Esc — остановить · Enter — отправить      the footnote, outside the frame
+   Отвечает демо: поток идёт локально…
+   ИИ может ошибаться — перепроверяйте…
 ```
 
 - The `textarea.input` has no border of its own — the wrapper carries it, and focus highlights the
   wrapper's edge in the accent. It grows to about 6 rows, then scrolls internally.
-- **The model picker is a native `<select>`** styled as ghost: the `:free` list from
-  `GET /api/models`. A native element gives keyboard handling, first-letter search and the system
-  picker on mobile for free. The model is remembered per chat, not globally.
+- **The model picker is a native `<select>`** styled as ghost: the list from `GET /api/models`.
+  A native element gives keyboard handling, first-letter search and the system picker on mobile for
+  free. The model is remembered per chat, not globally.
 - The primary button is `.btn-primary.btn-icon` with an arrow. Disabled while the field is empty.
 - **During generation** the button becomes "Стоп" (`.btn-secondary` with a square icon). The field
   stays enabled: typing the next question is allowed, sending is blocked until generation ends.
+
+### The picker's two groups
+
+With both kinds on offer the `<select>` carries two `<optgroup>`s — "Бесплатные модели OpenRouter"
+and "Демо без ключа" ([ADR 0017](adr/0017-demo-mode-beside-the-live-model.md)). The demo entries
+are served by the local producer and cost no quota, which is what makes them worth offering on a
+public deployment.
+
+Grouped **only when there is something to tell apart**: a server with no key offers demo entries
+alone, and a group label there would name a distinction the list does not make.
+
+There is no mode switch above the conversation and nothing in the navbar. "Who answers this" is
+the question the picker already asks, and a second control asking it again would be two places to
+read and one to forget.
+
+### The footnote
+
+Below the frame, centred, in the smallest size on the scale: a key map, the demo note, the caveat.
+Outside the frame because they are about the control rather than part of it — and the row inside
+was the first place to run out of room.
+
+- **The key map** is a `<ul>`: "Esc — остановить", "Enter — отправить", "Shift + Enter — перенос
+  строки". The last one is hidden below 860px: a touch keyboard has no Shift to hold, so on a phone
+  it names a key that is not there.
+- **The demo note** says what is answering, and only when demo entries exist. On a demo model:
+  "Отвечает демо: поток идёт локально, модель не участвует." On a live one it points at the demo
+  for the day the quota runs out. The first case matters more than the second — lorem ipsum must
+  never read as a model's reply.
+- **The caveat**, "ИИ может ошибаться", sits last: the note is about this answer, the caveat about
+  all of them.
 
 ## Errors
 
