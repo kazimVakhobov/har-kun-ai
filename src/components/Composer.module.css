@@ -179,9 +179,8 @@
  */
 .demo {
   margin: 0;
-  /* Narrower than the line above it: three lines of muted text under the field
-     start to read as a paragraph, and this one is a footnote. */
-  max-width: 52ch;
+  /* No width of its own: both sentences fit the conversation's column on one
+     line, and a narrower bound only wrapped them into a paragraph. */
 }
 
 /**

@@ -13,7 +13,19 @@ import { useChat } from './hooks/useChat.js'
 import type { Message } from './lib/types.js'
 
 export function App() {
-  const { chat, models, model, isStreaming, send, stop, retry, setModel } = useChat()
+  const {
+    chat,
+    models,
+    model,
+    demoModel,
+    isDemo,
+    isStreaming,
+    send,
+    stop,
+    retry,
+    retryOnDemo,
+    setModel,
+  } = useChat()
   const [draft, setDraft] = useState('')
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const day = useDayContext()
@@ -72,7 +84,13 @@ export function App() {
         hasMessages ? (
           // Retry lives on the message that failed, not in the footer: the
           // error belongs to its cause.
-          <MessageList messages={chat.messages} onRetry={canRetry ? retry : undefined} />
+          <MessageList
+            messages={chat.messages}
+            onRetry={canRetry ? retry : undefined}
+            // Nothing to fall back to when the server offers no demo, and
+            // nothing to fall back from when the answer is already on one.
+            onDemo={canRetry && demoModel !== '' && !isDemo ? retryOnDemo : undefined}
+          />
         ) : (
           // An example fills the field and moves focus there, but never sends:
           // the user has to be able to change their mind or add to it.
@@ -121,6 +139,7 @@ export function App() {
             isStreaming={isStreaming}
             models={models}
             model={model}
+            isDemo={isDemo}
             onModelChange={setModel}
             inputRef={inputRef}
           />

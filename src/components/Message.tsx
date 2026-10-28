@@ -8,9 +8,12 @@ import styles from './Message.module.css'
 export function MessageList({
   messages,
   onRetry,
+  onDemo,
 }: {
   messages: Message[]
   onRetry?: () => void
+  /** Offered by the error card on a spent quota (ADR 0017). */
+  onDemo?: () => void
 }) {
   const lastIndex = messages.length - 1
 
@@ -28,8 +31,10 @@ export function MessageList({
           <MessageView
             message={message}
             // Retrying anything but the last answer would rewrite history the
-            // conversation has already built on.
+            // conversation has already built on. The demo offer rides along: it
+            // is a retry on another model, under the same restriction.
             onRetry={index === lastIndex ? onRetry : undefined}
+            onDemo={index === lastIndex ? onDemo : undefined}
           />
         </li>
       ))}
@@ -37,7 +42,15 @@ export function MessageList({
   )
 }
 
-function MessageView({ message, onRetry }: { message: Message; onRetry?: () => void }) {
+function MessageView({
+  message,
+  onRetry,
+  onDemo,
+}: {
+  message: Message
+  onRetry?: () => void
+  onDemo?: () => void
+}) {
   const isUser = message.role === 'user'
   const isStreaming = message.status === 'streaming'
 
@@ -66,7 +79,12 @@ function MessageView({ message, onRetry }: { message: Message; onRetry?: () => v
       {/* The received text stays above, untouched: a partial answer is a valid
           result, not something to replace with an error. */}
       {message.error !== undefined && (
-        <ErrorNotice error={message.error} failedAt={message.failedAt} onRetry={onRetry} />
+        <ErrorNotice
+          error={message.error}
+          failedAt={message.failedAt}
+          onRetry={onRetry}
+          onDemo={onDemo}
+        />
       )}
 
       {!isUser && !isStreaming && (

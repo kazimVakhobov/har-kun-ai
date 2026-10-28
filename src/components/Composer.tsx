@@ -17,6 +17,8 @@ export interface ComposerProps {
   isStreaming: boolean
   models: ModelInfo[]
   model: string
+  /** Whether the selected model is a demo one, which the footnote has to say. */
+  isDemo: boolean
   onModelChange(model: string): void
   /** Lets the empty state's examples put focus here after filling the field. */
   inputRef?: RefObject<HTMLTextAreaElement | null>
@@ -30,6 +32,7 @@ export function Composer({
   isStreaming,
   models,
   model,
+  isDemo,
   onModelChange,
   inputRef,
 }: ComposerProps) {
@@ -40,7 +43,6 @@ export function Composer({
   // is the question the picker already asks (ADR 0017).
   const live = models.filter((entry) => entry.kind === 'live')
   const demo = models.filter((entry) => entry.kind === 'demo')
-  const onDemo = models.some((entry) => entry.id === model && entry.kind === 'demo')
 
   // Grow with the content up to the max-height the stylesheet sets, then let
   // the field scroll. Done on layout so the height never renders one frame late.
@@ -153,9 +155,9 @@ export function Composer({
             mistaken for a model's reply. */}
         {demo.length > 0 && (
           <p className={styles.demo}>
-            {onDemo
+            {isDemo
               ? 'Отвечает демо: поток идёт локально, модель не участвует. Механика та же, текст — бессмыслица.'
-              : 'Лимит бесплатной модели исчерпан? «Демо без ключа» покажет ту же механику, не обращаясь к модели.'}
+              : 'Лимит бесплатной модели исчерпан? «Демо без ключа» покажет ту же механику.'}
           </p>
         )}
 

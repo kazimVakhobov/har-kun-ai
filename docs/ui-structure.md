@@ -253,7 +253,14 @@ not as a banner at the top: a floating notification in a corner would detach the
 cause.
 
 A `.card` with a plain-language explanation, a `.tag-outline` carrying the contract's code, and a
-`.btn-primary` retry. The text received so far stays above, untouched.
+`.btn-ghost` retry. The text received so far stays above, untouched.
+
+**On `rate_limited`, and only there, the card also offers the demo**
+([ADR 0017](adr/0017-demo-mode-beside-the-live-model.md)). The quota belongs to the operator's key,
+so "wait" is the only advice Retry can give, and on a free tier the wait can be the rest of the
+day. That button is never disabled by the countdown: the wait is OpenRouter's and the demo does not
+go near it. A timeout or a dropped connection says nothing about the model's availability, so there
+the first move is still Retry and no offer appears.
 
 **Errors are not encoded in colour.** Nocturne has no role for errors; the system is mono and asks
 to keep chroma low outside the accent. Meaning is carried by a warning icon, a heading and text —
