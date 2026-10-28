@@ -85,7 +85,9 @@ The ones that shaped the code most:
 from `process.env` inside `server/` and never leaves it. The browser only ever talks to its own
 origin. Worth naming the trap avoided: Vite's `import.meta.env` with a `VITE_` prefix is one line
 away and **inlines the value into the bundle** — that is, into exactly the place the assignment
-says to keep it out of. `grep` over the built `dist/` finds neither `openrouter` nor `Bearer`.
+says to keep it out of. `grep -ril "bearer\|authorization\|sk-or-" dist/` over the built bundle
+finds nothing. Not `openrouter`, which it used to check: the word is now a visible group label in
+the model picker, and a check with a known false positive is one people stop reading.
 
 **Our own SSE shape rather than piping the upstream** ([ADR 0009](docs/adr/0009-normalized-sse.md)).
 HTTP cannot change a status once headers are sent, so an error that happens after the first token

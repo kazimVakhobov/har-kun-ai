@@ -98,6 +98,15 @@ spec called `.btn-primary` where the code has always used `.btn-ghost`.
   conversation's column once. A rule written to prevent a shape is worth checking against the
   shape.
 
+- **What it proposed:** that the work was finished, on a final run of typecheck, tests, build and
+  the documented key-leak grep.
+- **How it was noticed:** that last grep failed. `grep -ril "openrouter\|bearer" dist/` matched the
+  bundle — because the new group label *is* the word "OpenRouter", rendered on screen. No key, no
+  `bearer`, no `authorization`; the check had simply stopped being able to tell the difference.
+- **How it was fixed:** the check now greps for `bearer`, `authorization` and the key's own prefix,
+  and the README, its translation and the plan say why it changed. A verification with a known
+  false positive is one people learn to skip, which is worse than not having it.
+
 Also, smaller: `isDemo` was threaded into `App` without being destructured from the hook, which
 the type checker caught immediately.
 
@@ -117,7 +126,11 @@ the type checker caught immediately.
 
 ```bash
 npm run typecheck && npm test        # 169 tests, 11 files
+npm run build && grep -ril "bearer\|authorization\|sk-or-" dist/   # nothing
 ```
+
+The second line no longer greps for `openrouter`: the word is a group label in the picker now, so
+it is in the bundle on purpose.
 
 Without a key — the default for anyone cloning this:
 
