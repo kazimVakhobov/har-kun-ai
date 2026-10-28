@@ -9,6 +9,7 @@ import {
 import { runChatStream } from '../lib/chatStream.js'
 import { createStateSaver, loadState } from '../lib/storage.js'
 import { createStreamRegistry } from '../lib/streams.js'
+import { apiFetch } from '../lib/transport.js'
 import type { Chat, ChatState, Message } from '../lib/types.js'
 
 /**
@@ -24,8 +25,6 @@ export interface UseChat {
   model: string
   /** The demo model a rate-limited answer can fall back to; '' when none is offered. */
   demoModel: string
-  /** Whether the selected model is a demo one, so the interface can say so. */
-  isDemo: boolean
   isStreaming: boolean
   send(content: string): void
   stop(): void
@@ -70,12 +69,6 @@ export function useChat(): UseChat {
     [models],
   )
 
-  /** Whether the answer in front of the user is coming from the demo producer. */
-  const isDemo = useMemo(
-    () => models.some((entry) => entry.id === model && entry.kind === 'demo'),
-    [models, model],
-  )
-
   // While a stream runs, writes are debounced; once nothing is streaming the
   // pending state goes out immediately. Storage only has to survive a reload,
   // so it never needs to keep up per token (ADR 0011).
@@ -97,7 +90,7 @@ export function useChat(): UseChat {
   useEffect(() => {
     const controller = new AbortController()
 
-    void fetch('/api/models', { signal: controller.signal })
+    void apiFetch('/api/models', { signal: controller.signal })
       .then((response) => (response.ok ? (response.json() as Promise<ModelsResponse>) : null))
       .then((body) => {
         if (body === null) return
@@ -126,6 +119,7 @@ export function useChat(): UseChat {
             ? { messages: history }
             : { messages: history, model: requestedModel },
         signal: controller.signal,
+        fetchImpl: apiFetch,
         handlers: {
           onDelta: (text) => dispatch({ type: 'stream/delta', chatId, messageId, text }),
           onDone: () => {
@@ -214,7 +208,6 @@ export function useChat(): UseChat {
     models,
     model,
     demoModel,
-    isDemo,
     isStreaming,
     send,
     stop,

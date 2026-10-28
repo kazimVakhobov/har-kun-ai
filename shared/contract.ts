@@ -79,8 +79,15 @@ export type StreamEvent =
 /**
  * Where an answer would come from. `live` is a real model through OpenRouter;
  * `demo` is the local producer, which costs no quota and cannot run out.
+ *
+ * `fault` is a demo entry that fails on purpose — a 429, a silence, a dropped
+ * connection, an error mid-answer. **The server never serves one.** They exist
+ * only in the static demo build, where the producer runs in the visitor's own
+ * browser and the worst an entry can do is show its chooser an error card
+ * ([ADR 0018](../docs/adr/0018-static-demo-build.md)). Offering them from a
+ * real process would be `?simulate=` with extra steps.
  */
-export type ModelKind = 'live' | 'demo'
+export type ModelKind = 'live' | 'demo' | 'fault'
 
 export interface ModelInfo {
   id: string

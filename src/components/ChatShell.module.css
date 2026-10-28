@@ -15,6 +15,12 @@
   isolation: isolate;
 }
 
+/* A banner takes a row of its own above the navbar; the log still gets
+   whatever is left, which is what minmax(0, 1fr) is for. */
+.shellBanner {
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
 /**
  * Grain. A flat dark ground reads as a void on a large screen; a little noise
  * gives it a surface. Generated in an SVG filter rather than shipped as an

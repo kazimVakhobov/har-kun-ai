@@ -17,8 +17,6 @@ export interface ComposerProps {
   isStreaming: boolean
   models: ModelInfo[]
   model: string
-  /** Whether the selected model is a demo one, which the footnote has to say. */
-  isDemo: boolean
   onModelChange(model: string): void
   /** Lets the empty state's examples put focus here after filling the field. */
   inputRef?: RefObject<HTMLTextAreaElement | null>
@@ -32,17 +30,23 @@ export function Composer({
   isStreaming,
   models,
   model,
-  isDemo,
   onModelChange,
   inputRef,
 }: ComposerProps) {
   const localRef = useRef<HTMLTextAreaElement>(null)
   const ref = inputRef ?? localRef
 
-  // Two groups in the picker rather than a switch above it: "who answers this"
-  // is the question the picker already asks (ADR 0017).
-  const live = models.filter((entry) => entry.kind === 'live')
+  // Groups in the picker rather than a switch above it: "who answers this" is
+  // the question the picker already asks (ADR 0017). The third group exists
+  // only in the static demo build (ADR 0018).
   const demo = models.filter((entry) => entry.kind === 'demo')
+  const faults = models.filter((entry) => entry.kind === 'fault')
+
+  const groups = [
+    { label: 'Бесплатные модели OpenRouter', items: models.filter((e) => e.kind === 'live') },
+    { label: faults.length > 0 ? 'Демо — ответы' : 'Демо без ключа', items: demo },
+    { label: 'Демо — отказы', items: faults },
+  ].filter((group) => group.items.length > 0)
 
   // Grow with the content up to the max-height the stylesheet sets, then let
   // the field scroll. Done on layout so the height never renders one frame late.
@@ -104,16 +108,13 @@ export function Composer({
                 on offer — a server with no key, or a catalogue that would not
                 load — a group label would name a distinction the list does not
                 make. */}
-            {live.length > 0 && demo.length > 0 ? (
-              <>
-                <optgroup label="Бесплатные модели OpenRouter">
-                  {live.map(toOption)}
-                </optgroup>
-                <optgroup label="Демо без ключа">{demo.map(toOption)}</optgroup>
-              </>
-            ) : (
-              models.map(toOption)
-            )}
+            {groups.length > 1
+              ? groups.map((group) => (
+                  <optgroup key={group.label} label={group.label}>
+                    {group.items.map(toOption)}
+                  </optgroup>
+                ))
+              : models.map(toOption)}
           </select>
 
           {isStreaming ? (
@@ -153,18 +154,23 @@ export function Composer({
         {/* What is answering right now, or what to do when it stops answering.
             The first matters more than the second: lorem ipsum must never be
             mistaken for a model's reply. */}
-        {demo.length > 0 && (
-          <p className={styles.demo}>
-            {isDemo
-              ? 'Отвечает демо: поток идёт локально, модель не участвует. Механика та же, текст — бессмыслица.'
-              : 'Лимит бесплатной модели исчерпан? «Демо без ключа» покажет ту же механику.'}
-          </p>
-        )}
+        {demo.length > 0 && <p className={styles.demo}>{footnote(models, model)}</p>}
 
         <p className={styles.caveat}>ИИ может ошибаться — перепроверяйте важные ответы.</p>
       </div>
     </form>
   )
+}
+
+function footnote(models: ModelInfo[], model: string): string {
+  switch (models.find((entry) => entry.id === model)?.kind) {
+    case 'fault':
+      return 'Выбран отказ: ответа не будет. Смысл в том, что именно покажет интерфейс.'
+    case 'demo':
+      return 'Отвечает демо: поток идёт локально, модель не участвует. Механика та же, текст — бессмыслица.'
+    default:
+      return 'Лимит бесплатной модели исчерпан? «Демо без ключа» покажет ту же механику.'
+  }
 }
 
 function toOption(entry: ModelInfo) {
