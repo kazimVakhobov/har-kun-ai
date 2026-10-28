@@ -221,7 +221,7 @@ two were gated to particular apps, one was unavailable and one returned headers 
 
 Written by Claude Opus 5 in Claude Code, driven by a human review loop, over roughly a day of
 elapsed time plus two later rounds for the demo work below, in small commits across thirteen
-working branches — a hundred and three of them as this is written. The browser checks were done with
+working branches — a hundred and five of them as this is written. The browser checks were done with
 Claude's Chrome automation; there is no other tooling here.
 
 The honest version of "how it went" is in [`docs/progress/`](docs/progress/) — twenty reports,
