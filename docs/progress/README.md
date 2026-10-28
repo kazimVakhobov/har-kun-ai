@@ -53,3 +53,4 @@ assembled from here.
 | [0016-assignment-audit.md](0016-assignment-audit.md) | Auditing the repository against `TASK.md`, and closing what it found |
 | [0017-readme.md](0017-readme.md) | The README phase — reported after the fact, and saying so |
 | [0018-demo-mode.md](0018-demo-mode.md) | A demo that answers when the free quota will not |
+| [0019-static-demo.md](0019-static-demo.md) | A static build for GitHub Pages, answering from the browser |
